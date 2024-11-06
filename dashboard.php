@@ -1,5 +1,5 @@
 <?php
-// dispositivos.php
+// dashboard.php
 session_start();
 require_once "includes/config.php";
 
@@ -9,21 +9,11 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     exit;
 }
 
-// Obtener el tipo de dispositivo de la URL
-$tipo = isset($_GET['tipo']) ? $_GET['tipo'] : '';
-
 // Obtener los dispositivos del usuario
 $user_id = $_SESSION["id"];
 $sql = "SELECT * FROM dispositivos WHERE id_usuario = ?";
-if (!empty($tipo)) {
-    $sql .= " AND tipo = ?";
-}
 $stmt = mysqli_prepare($link, $sql);
-if (!empty($tipo)) {
-    mysqli_stmt_bind_param($stmt, "is", $user_id, $tipo);
-} else {
-    mysqli_stmt_bind_param($stmt, "i", $user_id);
-}
+mysqli_stmt_bind_param($stmt, "i", $user_id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 $dispositivos = mysqli_fetch_all($result, MYSQLI_ASSOC);
@@ -34,7 +24,7 @@ $dispositivos = mysqli_fetch_all($result, MYSQLI_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dispositivos - Control Stock</title>
+    <title>Dashboard - Control Stock</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <style>
@@ -74,7 +64,7 @@ $dispositivos = mysqli_fetch_all($result, MYSQLI_ASSOC);
         </button>
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
+                <li class="nav-item active">
                     <a class="nav-link" href="dashboard.php">Dashboard</a>
                 </li>
                 <li class="nav-item">
@@ -88,41 +78,45 @@ $dispositivos = mysqli_fetch_all($result, MYSQLI_ASSOC);
     </nav>
 
     <div class="container">
-        <h2 class="text-white mb-4"><?php echo empty($tipo) ? 'Todos los Dispositivos' : $tipo . 's'; ?></h2>
+        <h2 class="text-white mb-4">Bienvenido, <?php echo htmlspecialchars($_SESSION["username"]); ?></h2>
         
         <div class="row">
-            <?php foreach ($dispositivos as $dispositivo): ?>
-                <div class="col-md-4 mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title"><?php echo htmlspecialchars($dispositivo['marca'] . ' ' . $dispositivo['modelo']); ?></h5>
-                            <p class="card-text">
-                                <?php
-                                switch($dispositivo['tipo']) {
-                                    case 'Computadora':
-                                        echo '<i class="fas fa-desktop fa-3x mb-3"></i>';
-                                        break;
-                                    case 'Tablet':
-                                        echo '<i class="fas fa-tablet-alt fa-3x mb-3"></i>';
-                                        break;
-                                    case 'Celular':
-                                        echo '<i class="fas fa-mobile-alt fa-3x mb-3"></i>';
-                                        break;
-                                    default:
-                                        echo '<i class="fas fa-question fa-3x mb-3"></i>';
-                                }
-                                ?>
-                                <br>
-                                Tipo: <?php echo htmlspecialchars($dispositivo['tipo']); ?><br>
-                                Fecha de Entrega: <?php echo htmlspecialchars($dispositivo['fecha_entrega']); ?><br>
-                                Estado: <?php echo htmlspecialchars($dispositivo['estado']); ?>
-                            </p>
-                            <a href="editar_dispositivo.php?id=<?php echo $dispositivo['id']; ?>" class="btn btn-primary">Editar</a>
-                            <a href="eliminar_dispositivo.php?id=<?php echo $dispositivo['id']; ?>" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que quieres eliminar este dispositivo?')">Eliminar</a>
-                        </div>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Computadoras</h5>
+                        <p class="card-text">
+                            <i class="fas fa-desktop fa-3x mb-3"></i><br>
+                            <?php echo count(array_filter($dispositivos, function($d) { return $d['tipo'] == 'Computadora'; })); ?> dispositivos
+                        </p>
+                        <a href="dispositivos.php?tipo=Computadora" class="btn btn-primary">Ver Computadoras</a>
                     </div>
                 </div>
-            <?php endforeach; ?>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Tablets</h5>
+                        <p class="card-text">
+                            <i class="fas fa-tablet-alt fa-3x mb-3"></i><br>
+                            <?php echo count(array_filter($dispositivos, function($d) { return $d['tipo'] == 'Tablet'; })); ?> dispositivos
+                        </p>
+                        <a href="dispositivos.php?tipo=Tablet" class="btn btn-primary">Ver Tablets</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Celulares</h5>
+                        <p class="card-text">
+                            <i class="fas fa-mobile-alt fa-3x mb-3"></i><br>
+                            <?php echo count(array_filter($dispositivos, function($d) { return $d['tipo'] == 'Celular'; })); ?> dispositivos
+                        </p>
+                        <a href="dispositivos.php?tipo=Celular" class="btn btn-primary">Ver Celulares</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
