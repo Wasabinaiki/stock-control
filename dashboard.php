@@ -1,12 +1,13 @@
 <?php
 session_start();
- 
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+
+// Verificar si el usuario ha iniciado sesión
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
 ?>
- 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -93,6 +94,39 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
                         <i class="fas fa-mobile-alt fa-3x mb-3" style="color: #764ba2;"></i>
                         <h5 class="card-title">Celulares</h5>
                         <a href="dispositivos.php?tipo=celular" class="btn btn-primary">Ver Celulares</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verificación de rol para la vista de Bodega -->
+            <?php if (isset($_SESSION["rol"]) && $_SESSION["rol"] === "admin"): ?>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-warehouse fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Bodega</h5>
+                        <a href="bodega.php" class="btn btn-primary">Acceder a Bodega</a>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-question-circle fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">PQRS</h5>
+                        <a href="pqrs.php" class="btn btn-primary">Enviar PQRS</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-cog fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Configuración</h5>
+                        <a href="configuracion.php" class="btn btn-primary">Configuración de la App</a>
                     </div>
                 </div>
             </div>
