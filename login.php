@@ -1,75 +1,70 @@
 <?php
-// login.php
 session_start();
 require_once "includes/config.php";
 
-// Inicializar variables
 $username = $password = "";
-$username_err = $password_err = $login_err = "";
-$attempts = isset($_SESSION['login_attempts']) ? $_SESSION['login_attempts'] : 0;
+$username_err = $password_err = "";
+$login_attempts = isset($_SESSION['login_attempts']) ? $_SESSION['login_attempts'] : 0;
 
-// Procesar datos del formulario cuando se envía
 if($_SERVER["REQUEST_METHOD"] == "POST"){
+    if(empty(trim($_POST["username"]))){
+        $username_err = "Por favor ingrese su usuario.";
+    } else{
+        $username = trim($_POST["username"]);
+    }
     
-    // Verificar si se han excedido los intentos
-    if($attempts >= 3) {
-        $login_err = "Has excedido el número máximo de intentos. Por favor, restablece tu contraseña.";
-    } else {
-        // Validar username
-        if(empty(trim($_POST["username"]))){
-            $username_err = "Por favor ingrese su nombre de usuario.";
-        } else{
-            $username = trim($_POST["username"]);
-        }
+    if(empty(trim($_POST["password"]))){
+        $password_err = "Por favor ingrese su contraseña.";
+    } else{
+        $password = trim($_POST["password"]);
+    }
+    
+    if(empty($username_err) && empty($password_err)){
+        $sql = "SELECT id_usuario, username, password FROM usuarios WHERE username = ?";
         
-        // Validar password
-        if(empty(trim($_POST["password"]))){
-            $password_err = "Por favor ingrese su contraseña.";
-        } else{
-            $password = trim($_POST["password"]);
-        }
-        
-        // Validar credenciales
-        if(empty($username_err) && empty($password_err)){
-            $sql = "SELECT id, username, password FROM users WHERE username = ?";
+        if($stmt = mysqli_prepare($link, $sql)){
+            mysqli_stmt_bind_param($stmt, "s", $param_username);
+            $param_username = $username;
             
-            if($stmt = mysqli_prepare($link, $sql)){
-                mysqli_stmt_bind_param($stmt, "s", $param_username);
-                $param_username = $username;
+            if(mysqli_stmt_execute($stmt)){
+                mysqli_stmt_store_result($stmt);
                 
-                if(mysqli_stmt_execute($stmt)){
-                    mysqli_stmt_store_result($stmt);
-                    
-                    if(mysqli_stmt_num_rows($stmt) == 1){
-                        mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password);
-                        if(mysqli_stmt_fetch($stmt)){
-                            if(password_verify($password, $hashed_password)){
-                                // Contraseña correcta, iniciar sesión
-                                session_start();
-                                $_SESSION["loggedin"] = true;
-                                $_SESSION["id"] = $id;
-                                $_SESSION["username"] = $username;
-                                unset($_SESSION['login_attempts']); // Resetear intentos
-                                
-                                header("location: dashboard.php");
-                            } else{
-                                // Contraseña incorrecta
-                                $attempts++;
-                                $_SESSION['login_attempts'] = $attempts;
-                                $login_err = "Usuario o contraseña incorrectos. Intentos restantes: " . (3 - $attempts);
-                            }
+                if(mysqli_stmt_num_rows($stmt) == 1){                    
+                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password);
+                    if(mysqli_stmt_fetch($stmt)){
+                        if(password_verify($password, $hashed_password)){
+                            session_start();
+                            $_SESSION["loggedin"] = true;
+                            $_SESSION["id"] = $id;
+                            $_SESSION["username"] = $username;
+                            
+                            unset($_SESSION['login_attempts']);
+                            header("location: dashboard.php");
+                        } else{
+                            $password_err = "La contraseña que has ingresado no es válida.";
+                            $login_attempts++;
+                            $_SESSION['login_attempts'] = $login_attempts;
                         }
-                    } else{
-                        $login_err = "Usuario o contraseña incorrectos.";
                     }
                 } else{
-                    $login_err = "Algo salió mal. Por favor, inténtalo de nuevo.";
+                    $username_err = "No existe cuenta registrada con ese nombre de usuario.";
+                    $login_attempts++;
+                    $_SESSION['login_attempts'] = $login_attempts;
                 }
-                mysqli_stmt_close($stmt);
+            } else{
+                echo "Algo salió mal, por favor vuelve a intentarlo.";
             }
         }
+        
+        mysqli_stmt_close($stmt);
     }
+    
     mysqli_close($link);
+    
+    if($login_attempts >= 3){
+        header("location: reset_password.php");
+        exit;
+    }
 }
 ?>
 
@@ -78,97 +73,110 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Control Stock</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Iniciar Sesión</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #1e1e1e 0%, #3d0000 100%);
-            min-height: 100vh;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .login-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 2rem;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+        .wrapper {
+            width: 380px;
+            padding: 40px;
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
         }
-        .form-control {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
+        .wrapper h2 {
+            font-size: 2em;
+            margin-bottom: 1em;
+            color: #333;
+            text-align: center;
         }
-        .form-control:focus {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
+        .wrapper .form-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        .wrapper .form-group input {
+            height: 50px;
+            padding-left: 45px;
+            font-size: 16px;
+            border: none;
+            border-bottom: 2px solid #ddd;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+        .wrapper .form-group input:focus {
+            border-color: #764ba2;
+            box-shadow: none;
+        }
+        .wrapper .form-group i {
+            position: absolute;
+            left: 15px;
+            top: 17px;
+            color: #764ba2;
+            font-size: 18px;
         }
         .btn-primary {
-            background: #dc3545;
-            border-color: #dc3545;
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
         }
         .btn-primary:hover {
-            background: #c82333;
-            border-color: #bd2130;
-        }
-        .text-white {
-            color: white !important;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         .alert {
-            background: rgba(220, 53, 69, 0.2);
-            border: 1px solid #dc3545;
-            color: white;
+            border-radius: 8px;
+            font-size: 14px;
         }
-        .forgot-password {
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-        }
-        .forgot-password:hover {
-            color: white;
-            text-decoration: none;
+        .links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2 class="text-center text-white mb-4">GESTIÓN DE EQUIPOS CONTROL STOCK</h2>
-        
+    <div class="wrapper">
+        <h2><i class="fas fa-lock me-2"></i>Iniciar Sesión</h2>
         <?php 
-        if(!empty($login_err)){
-            echo '<div class="alert alert-danger">' . $login_err . '</div>';
-        }        
-        if($attempts >= 3){
-            echo '<div class="alert alert-danger">Has excedido el número máximo de intentos. 
-                  <a href="reset-password.php" class="text-white">Haz clic aquí para restablecer tu contraseña</a></div>';
+        if($login_attempts > 0){
+            echo "<div class='alert alert-warning' role='alert'>
+                    <i class='fas fa-exclamation-triangle me-2'></i>Intentos fallidos: $login_attempts
+                  </div>";
         }
         ?>
-
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <div class="form-group">
-                <input type="text" name="username" placeholder="Usuario" 
-                       class="form-control <?php echo (!empty($username_err)) ? 'is-invalid' : ''; ?>" 
-                       value="<?php echo $username; ?>">
-                <span class="invalid-feedback"><?php echo $username_err; ?></span>
+                <input type="text" name="username" class="form-control <?php echo (!empty($username_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $username; ?>" placeholder="Usuario">
+                <i class="fas fa-user"></i>
+                <div class="invalid-feedback"><?php echo $username_err; ?></div>
             </div>    
             <div class="form-group">
-                <input type="password" name="password" placeholder="Contraseña" 
-                       class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
-                <span class="invalid-feedback"><?php echo $password_err; ?></span>
+                <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>" placeholder="Contraseña">
+                <i class="fas fa-lock"></i>
+                <div class="invalid-feedback"><?php echo $password_err; ?></div>
             </div>
             <div class="form-group">
-                <input type="submit" class="btn btn-primary btn-block" value="Iniciar Sesión">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt me-2"></i>Ingresar
+                </button>
             </div>
-            <p class="text-center">
-                <a href="reset-password.php" class="forgot-password">¿Olvidaste tu contraseña?</a>
-            </p>
-            <p class="text-center text-white">
-                ¿No tienes una cuenta? <a href="register.php" class="forgot-password">Regístrate ahora</a>
-            </p>
+            <div class="links">
+                <a href="register.php">¿No tienes una cuenta? Regístrate</a>
+                <a href="reset_password.php">¿Olvidaste tu contraseña?</a>
+            </div>
         </form>
-    </div>
+    </div>    
 </body>
 </html>
