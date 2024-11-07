@@ -1,0 +1,106 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.wrapper {
+    max-width: 800px;
+    margin: 50px auto;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+}
+
+h2 {
+    color: #8b0000;
+    border-bottom: 2px solid #8b0000;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.btn-primary {
+    background-color: #8b0000;
+    border-color: #8b0000;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #660000;
+    border-color: #660000;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover, .btn-danger:focus {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+.form-control:focus {
+    border-color: #8b0000;
+    box-shadow: 0 0 0 0.2rem rgba(139, 0, 0, 0.25);
+}
+
+.panel {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.panel:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+.panel-heading {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding: 15px;
+}
+
+.panel-info {
+    border-color: #8b0000;
+}
+
+.panel-info > .panel-heading {
+    background-color: #8b0000;
+    border-color: #8b0000;
+    color: white;
+}
+
+.device-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.device-card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.navbar {
+    background-color: #8b0000;
+    border: none;
+    border-radius: 0;
+}
+
+.navbar-brand {
+    color: #fff !important;
+    font-weight: bold;
+}
+
+.navbar-nav > li > a {
+    color: #fff !important;
+}
+
+.navbar-nav > li > a:hover {
+    background-color: #660000 !important;
+}
