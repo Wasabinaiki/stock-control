@@ -10,50 +10,20 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 $id_dispositivo = $tipo = $marca = $modelo = $fecha_entrega = $licencias = $procesador = $almacenamiento = $ram = $serial = "";
 $tipo_err = $marca_err = $modelo_err = $fecha_entrega_err = $licencias_err = $procesador_err = $almacenamiento_err = $ram_err = $serial_err = "";
 
+// Verificar si se recibió un ID por GET
 if(isset($_GET["id"]) && !empty(trim($_GET["id"]))){
     $id_dispositivo = trim($_GET["id"]);
-    
-    $sql = "SELECT * FROM dispositivos WHERE id_dispositivo = ? AND id_usuario = ?";
-    if($stmt = mysqli_prepare($link, $sql)){
-        mysqli_stmt_bind_param($stmt, "ii", $param_id_dispositivo, $param_id_usuario);
-        
-        $param_id_dispositivo = $id_dispositivo;
-        $param_id_usuario = $_SESSION["id"];
-        
-        if(mysqli_stmt_execute($stmt)){
-            $result = mysqli_stmt_get_result($stmt);
-    
-            if(mysqli_num_rows($result) == 1){
-                $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
-                
-                $tipo = $row["tipo"];
-                $marca = $row["marca"];
-                $modelo = $row["modelo"];
-                $fecha_entrega = $row["fecha_entrega"];
-                $licencias = $row["licencias"];
-                $procesador = $row["procesador"];
-                $almacenamiento = $row["almacenamiento"];
-                $ram = $row["ram"];
-                $serial = $row["serial"];
-            } else{
-                header("location: error.php");
-                exit();
-            }
-            
-        } else{
-            echo "Oops! Algo salió mal. Por favor, inténtelo de nuevo más tarde.";
-        }
-    }
-    
-    mysqli_stmt_close($stmt);
-} else{
+} elseif(isset($_POST["id_dispositivo"]) && !empty(trim($_POST["id_dispositivo"]))) {
+    // Si no hay ID en GET pero sí en POST, usar ese
+    $id_dispositivo = trim($_POST["id_dispositivo"]);
+} else {
     header("location: error.php");
     exit();
 }
 
+// Procesar el formulario cuando se envía
 if($_SERVER["REQUEST_METHOD"] == "POST"){
-    $id_dispositivo = trim($_POST["id_dispositivo"]);
-    
+    // Validar y obtener los datos del formulario
     if(empty(trim($_POST["tipo"]))){
         $tipo_err = "Por favor ingrese el tipo de dispositivo.";
     } else{
@@ -84,6 +54,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     $ram = trim($_POST["ram"]);
     $serial = trim($_POST["serial"]);
     
+    // Si no hay errores de validación, proceder con la actualización
     if(empty($tipo_err) && empty($marca_err) && empty($modelo_err) && empty($fecha_entrega_err)){
         $sql = "UPDATE dispositivos SET tipo=?, marca=?, modelo=?, fecha_entrega=?, licencias=?, procesador=?, almacenamiento=?, ram=?, serial=? WHERE id_dispositivo=? AND id_usuario=?";
         
@@ -103,18 +74,50 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $param_id_usuario = $_SESSION["id"];
             
             if(mysqli_stmt_execute($stmt)){
-                header("location: dispositivos.php?tipo=" . $tipo);
+                $_SESSION['success_message'] = "Dispositivo actualizado exitosamente.";
+                header("location: dispositivos.php?tipo=" . urlencode($tipo));
                 exit();
             } else{
                 echo "Algo salió mal. Por favor, inténtelo de nuevo más tarde.";
             }
+            
+            mysqli_stmt_close($stmt);
+        }
+    }
+} else {
+    // Si no es POST, cargar los datos actuales del dispositivo
+    $sql = "SELECT * FROM dispositivos WHERE id_dispositivo = ? AND id_usuario = ?";
+    if($stmt = mysqli_prepare($link, $sql)){
+        mysqli_stmt_bind_param($stmt, "ii", $id_dispositivo, $_SESSION["id"]);
+        
+        if(mysqli_stmt_execute($stmt)){
+            $result = mysqli_stmt_get_result($stmt);
+    
+            if(mysqli_num_rows($result) == 1){
+                $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
+                
+                $tipo = $row["tipo"];
+                $marca = $row["marca"];
+                $modelo = $row["modelo"];
+                $fecha_entrega = $row["fecha_entrega"];
+                $licencias = $row["licencias"];
+                $procesador = $row["procesador"];
+                $almacenamiento = $row["almacenamiento"];
+                $ram = $row["ram"];
+                $serial = $row["serial"];
+            } else{
+                header("location: error.php");
+                exit();
+            }
+        } else{
+            echo "Oops! Algo salió mal. Por favor, inténtelo de nuevo más tarde.";
         }
         
         mysqli_stmt_close($stmt);
     }
-    
-    mysqli_close($link);
 }
+
+mysqli_close($link);
 ?>
 
 <!DOCTYPE html>
@@ -126,9 +129,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
+        body { background-color: #f8f9fa; }
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
@@ -143,9 +144,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .form-group {
-            margin-bottom: 20px;
-        }
+        .form-group { margin-bottom: 20px; }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -180,7 +179,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     <div class="container mt-5">
         <div class="wrapper">
             <h2 class="mb-4"><i class="fas fa-edit me-2"></i>Editar Dispositivo</h2>
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) . "?id=" . $id_dispositivo; ?>" method="post">
                 <input type="hidden" name="id_dispositivo" value="<?php echo $id_dispositivo; ?>">
                 <div class="form-group">
                     <label for="tipo">Tipo</label>

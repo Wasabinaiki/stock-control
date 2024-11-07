@@ -14,6 +14,13 @@ if(empty($tipo)) {
     exit;
 }
 
+// Agregar esto al principio del archivo, después de session_start();
+$success_message = '';
+if (isset($_SESSION['success_message'])) {
+    $success_message = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);
+}
+
 $sql = "SELECT id_dispositivo, marca, modelo, fecha_entrega, licencias, procesador, almacenamiento, ram, serial FROM dispositivos WHERE tipo = ? AND id_usuario = ?";
 
 if($stmt = mysqli_prepare($link, $sql)){
@@ -109,6 +116,15 @@ if($stmt = mysqli_prepare($link, $sql)){
     </nav>
 
     <div class="container mt-5">
+        <?php
+        if (!empty($success_message)) {
+            echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
+            echo '<i class="fas fa-check-circle me-2"></i>' . htmlspecialchars($success_message);
+            echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+            echo '</div>';
+        }
+        ?>
+        
         <h2 class="mb-4"><i class="fas fa-list me-2"></i>Lista de <?php echo ucfirst($tipo); ?>s</h2>
         <div class="row">
         <?php
@@ -154,8 +170,7 @@ if($stmt = mysqli_prepare($link, $sql)){
     <a href="agregar_dispositivo.php?tipo=<?php echo $tipo; ?>" class="btn btn-success btn-lg">
         <i class="fas fa-plus me-2"></i>Agregar nuevo dispositivo
     </a>
-</div>
-
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
