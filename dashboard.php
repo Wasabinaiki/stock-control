@@ -6,6 +6,9 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
+
+// Determinar si el usuario es administrador
+$is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
 ?>
 
 <!DOCTYPE html>
@@ -70,121 +73,66 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     <div class="container mt-5">
         <h2 class="mb-4">Bienvenido, <?php echo htmlspecialchars($_SESSION["username"]); ?></h2>
         <div class="row">
+            <!-- Existing cards -->
+
+            <!-- New Envíos card -->
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <i class="fas fa-desktop fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Computadoras</h5>
-                        <a href="dispositivos.php?tipo=computadora" class="btn btn-primary">Ver Computadoras</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-tablet-alt fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Tablets</h5>
-                        <a href="dispositivos.php?tipo=tablet" class="btn btn-primary">Ver Tablets</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-mobile-alt fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Celulares</h5>
-                        <a href="dispositivos.php?tipo=celular" class="btn btn-primary">Ver Celulares</a>
+                        <i class="fas fa-truck fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Envíos</h5>
+                        <a href="envios.php" class="btn btn-primary">Gestionar Envíos</a>
                     </div>
                 </div>
             </div>
 
-            <?php if (isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador"): ?>
+            <!-- New Informes card -->
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <i class="fas fa-warehouse fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Bodega</h5>
-                        <a href="bodega.php" class="btn btn-primary">Acceder a Bodega</a>
+                        <i class="fas fa-chart-bar fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Informes</h5>
+                        <a href="informes.php" class="btn btn-primary">Ver Informes</a>
                     </div>
                 </div>
             </div>
+
+            <!-- New Reportes card -->
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <i class="fas fa-user-shield fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Panel de Administración</h5>
-                        <a href="admin_dashboard.php" class="btn btn-primary">Acceder al Panel</a>
+                        <i class="fas fa-file-alt fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Reportes</h5>
+                        <a href="reportes.php" class="btn btn-primary">Ver Reportes</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Factura card -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-invoice fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Factura</h5>
+                        <a href="factura.php" class="btn btn-primary">Gestionar Facturas</a>
+                    </div>
+                </div>
+            </div>
+
+            <?php if ($is_admin): ?>
+            <!-- Admin only: Mantenimientos card -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tools fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Mantenimientos</h5>
+                        <a href="mantenimientos.php" class="btn btn-primary">Ver Mantenimientos</a>
                     </div>
                 </div>
             </div>
             <?php endif; ?>
 
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-question-circle fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">PQRS</h5>
-                        <a href="pqrs.php" class="btn btn-primary">Enviar PQRS</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-cog fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Configuración</h5>
-                        <a href="configuracion.php" class="btn btn-primary">Configuración de la App</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Nuevas páginas informativas -->
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-file-alt fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Términos y Condiciones</h5>
-                        <a href="terminos.php" class="btn btn-primary">Ver Términos</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-shield-alt fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Políticas de Privacidad</h5>
-                        <a href="privacidad.php" class="btn btn-primary">Ver Políticas</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-users fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Quiénes Somos</h5>
-                        <a href="quienes_somos.php" class="btn btn-primary">Conocer Más</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-envelope fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Contáctenos</h5>
-                        <a href="contacto.php" class="btn btn-primary">Contactar</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-question fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Ayuda</h5>
-                        <a href="ayuda.php" class="btn btn-primary">Obtener Ayuda</a>
-                    </div>
-                </div>
-            </div>
+            <!-- Existing cards and content -->
         </div>
     </div>
 

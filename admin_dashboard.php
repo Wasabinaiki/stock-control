@@ -31,6 +31,10 @@ $result_users = mysqli_query($link, $sql);
 // Obtener lista de PQRs
 $sql = "SELECT p.*, u.username FROM pqrs p JOIN usuarios u ON p.id_usuario = u.id_usuario ORDER BY p.fecha_creacion DESC";
 $result_pqrs = mysqli_query($link, $sql);
+
+// Obtener lista de mantenimientos
+$sql = "SELECT * FROM mantenimientos ORDER BY fecha DESC";
+$result_mantenimientos = mysqli_query($link, $sql);
 ?>
 
 <!DOCTYPE html>
@@ -89,14 +93,6 @@ $result_pqrs = mysqli_query($link, $sql);
         }
         .alert {
             margin-bottom: 20px;
-        }
-        .nav-item .nav-link {
-            padding: 0.5rem 1rem;
-            transition: all 0.3s ease;
-        }
-        .nav-item .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
         }
     </style>
 </head>
@@ -243,6 +239,44 @@ $result_pqrs = mysqli_query($link, $sql);
                                             <td colspan="4" class="text-center">No hay PQRs registrados</td>
                                         </tr>
                                     <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Mantenimientos Programados</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Estado</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php while($row = mysqli_fetch_assoc($result_mantenimientos)): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($row['id']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['fecha']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['tipo']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['estado']); ?></td>
+                                        <td>
+                                            <a href="ver_mantenimiento.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info">Ver detalles</a>
+                                        </td>
+                                    </tr>
+                                    <?php endwhile; ?>
                                 </tbody>
                             </table>
                         </div>
