@@ -98,14 +98,22 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
                 </div>
             </div>
 
-            <!-- Verificación de rol para la vista de Bodega -->
-            <?php if (isset($_SESSION["rol"]) && $_SESSION["rol"] === "admin"): ?>
+            <?php if (isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador"): ?>
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-body text-center">
                         <i class="fas fa-warehouse fa-3x mb-3" style="color: #764ba2;"></i>
                         <h5 class="card-title">Bodega</h5>
                         <a href="bodega.php" class="btn btn-primary">Acceder a Bodega</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-shield fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Panel de Administración</h5>
+                        <a href="admin_dashboard.php" class="btn btn-primary">Acceder al Panel</a>
                     </div>
                 </div>
             </div>
@@ -127,6 +135,53 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
                         <i class="fas fa-cog fa-3x mb-3" style="color: #764ba2;"></i>
                         <h5 class="card-title">Configuración</h5>
                         <a href="configuracion.php" class="btn btn-primary">Configuración de la App</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nuevas páginas informativas -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-alt fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Términos y Condiciones</h5>
+                        <a href="terminos.php" class="btn btn-primary">Ver Términos</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-shield-alt fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Políticas de Privacidad</h5>
+                        <a href="privacidad.php" class="btn btn-primary">Ver Políticas</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Quiénes Somos</h5>
+                        <a href="quienes_somos.php" class="btn btn-primary">Conocer Más</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-envelope fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Contáctenos</h5>
+                        <a href="contacto.php" class="btn btn-primary">Contactar</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-question fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Ayuda</h5>
+                        <a href="ayuda.php" class="btn btn-primary">Obtener Ayuda</a>
                     </div>
                 </div>
             </div>

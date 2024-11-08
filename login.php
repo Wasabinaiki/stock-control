@@ -20,7 +20,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
     
     if(empty($username_err) && empty($password_err)){
-        $sql = "SELECT id_usuario, username, password FROM usuarios WHERE username = ?";
+        $sql = "SELECT id_usuario, username, password, rol FROM usuarios WHERE username = ?";
         
         if($stmt = mysqli_prepare($link, $sql)){
             mysqli_stmt_bind_param($stmt, "s", $param_username);
@@ -30,16 +30,23 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 mysqli_stmt_store_result($stmt);
                 
                 if(mysqli_stmt_num_rows($stmt) == 1){                    
-                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password);
+                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password, $rol);
                     if(mysqli_stmt_fetch($stmt)){
                         if(password_verify($password, $hashed_password)){
                             session_start();
                             $_SESSION["loggedin"] = true;
                             $_SESSION["id"] = $id;
                             $_SESSION["username"] = $username;
+                            $_SESSION["rol"] = $rol;
                             
                             unset($_SESSION['login_attempts']);
-                            header("location: dashboard.php");
+                            
+                            if($rol === "administrador"){
+                                header("location: admin_dashboard.php");
+                            } else {
+                                header("location: dashboard.php");
+                            }
+                            exit();
                         } else{
                             $password_err = "La contraseña que has ingresado no es válida.";
                             $login_attempts++;
