@@ -33,7 +33,7 @@ $sql = "SELECT p.*, u.username FROM pqrs p JOIN usuarios u ON p.id_usuario = u.i
 $result_pqrs = mysqli_query($link, $sql);
 
 // Obtener lista de mantenimientos
-$sql = "SELECT * FROM mantenimientos ORDER BY fecha DESC";
+$sql = "SELECT * FROM mantenimientos ORDER BY fecha_programada DESC";
 $result_mantenimientos = mysqli_query($link, $sql);
 ?>
 
@@ -259,8 +259,8 @@ $result_mantenimientos = mysqli_query($link, $sql);
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Fecha</th>
-                                        <th>Tipo</th>
+                                        <th>Fecha Programada</th>
+                                        <th>Descripción</th>
                                         <th>Estado</th>
                                         <th>Acción</th>
                                     </tr>
@@ -269,8 +269,8 @@ $result_mantenimientos = mysqli_query($link, $sql);
                                     <?php while($row = mysqli_fetch_assoc($result_mantenimientos)): ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($row['id']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['fecha']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['tipo']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['fecha_programada']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['descripcion']); ?></td>
                                         <td><?php echo htmlspecialchars($row['estado']); ?></td>
                                         <td>
                                             <a href="ver_mantenimiento.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info">Ver detalles</a>

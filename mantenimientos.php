@@ -2,41 +2,47 @@
 session_start();
 require_once "includes/config.php";
 
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION["rol"] !== "administrador"){
+// Verificar si el usuario ha iniciado sesión
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
 
-// Obtener dispositivos de la base de datos con una consulta mejorada
-$sql = "SELECT id_dispositivo, tipo, marca, modelo, estado FROM dispositivos";
-$result = mysqli_query($link, $sql);
+// Determinar si el usuario es administrador
+$is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
 
-if (!$result) {
-    die("Error en la consulta: " . mysqli_error($link));
+// Consulta SQL base
+$sql = "SELECT m.*, d.tipo as tipo_dispositivo, d.marca, d.modelo 
+        FROM mantenimientos m 
+        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo";
+
+// Si no es administrador, filtrar solo los mantenimientos del usuario actual
+if (!$is_admin) {
+    $sql .= " WHERE m.id_usuario = " . $_SESSION['id_usuario'];
 }
+
+$sql .= " ORDER BY m.fecha_programada DESC";
+
+$result_mantenimientos = mysqli_query($link, $sql);
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bodega</title>
+    <title>Mantenimientos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             background-color: #f8f9fa;
-            min-height: 100vh;
         }
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         .navbar-brand, .nav-link {
             color: white !important;
-        }
-        .container {
-            margin-top: 30px;
-            padding-bottom: 30px;
         }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -50,38 +56,17 @@ if (!$result) {
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        .btn-warning {
-            color: white;
-            background-color: #ffc107;
-            border-color: #ffc107;
-        }
-        .btn-warning:hover {
-            color: white;
-            background-color: #e0a800;
-            border-color: #d39e00;
-        }
-        .btn-danger {
-            background-color: #dc3545;
-            border-color: #dc3545;
-        }
-        .btn-danger:hover {
-            background-color: #c82333;
-            border-color: #bd2130;
-        }
         .table thead th {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-        }
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: rgba(0,0,0,.02);
         }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#"><i class="fas fa-warehouse me-2"></i>Gestión de Bodega</a>
+            <a class="navbar-brand" href="#"><i class="fas fa-tools me-2"></i>Mantenimientos</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -98,11 +83,12 @@ if (!$result) {
         </div>
     </nav>
 
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="fas fa-boxes me-2"></i>Gestión de Bodega</h2>
-            <a href="dispositivo_agregar.php" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Agregar Dispositivo
+    <div class="container mt-5">
+        <h2 class="mb-4">Mantenimientos <?php echo $is_admin ? 'de todos los usuarios' : 'programados'; ?></h2>
+        
+        <div class="mb-4">
+            <a href="programar_mantenimiento.php" class="btn btn-primary">
+                <i class="fas fa-calendar-plus me-2"></i>Programar Mantenimiento
             </a>
         </div>
 
@@ -111,35 +97,34 @@ if (!$result) {
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Marca</th>
-                        <th>Modelo</th>
+                        <th>Dispositivo</th>
+                        <th>Fecha Programada</th>
+                        <th>Descripción</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
-                    if (mysqli_num_rows($result) > 0) {
-                        while($row = mysqli_fetch_assoc($result)) {
+                    if (mysqli_num_rows($result_mantenimientos) > 0) {
+                        while($row = mysqli_fetch_assoc($result_mantenimientos)) {
                             echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row['id_dispositivo']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['tipo']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['marca']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['modelo']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['tipo_dispositivo'] . ' ' . $row['marca'] . ' ' . $row['modelo']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['fecha_programada']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['descripcion']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['estado']) . "</td>";
-                            echo "<td class='text-nowrap'>";
-                            echo "<a href='bodega_editar.php?id=" . htmlspecialchars($row['id_dispositivo']) . "' class='btn btn-sm btn-warning me-2'>";
-                            echo "<i class='fas fa-edit me-1'></i>Editar</a>";
-                            echo "<a href='bodega_eliminar.php?id=" . htmlspecialchars($row['id_dispositivo']) . "' class='btn btn-sm btn-danger'>";
-                            echo "<i class='fas fa-trash me-1'></i>Eliminar</a>";
+                            echo "<td>";
+                            echo "<a href='ver_mantenimiento.php?id=" . $row['id'] . "' class='btn btn-sm btn-info me-2'><i class='fas fa-eye'></i></a>";
+                            if ($is_admin || $row['estado'] !== 'completado') {
+                                echo "<a href='editar_mantenimiento.php?id=" . $row['id'] . "' class='btn btn-sm btn-warning me-2'><i class='fas fa-edit'></i></a>";
+                            }
                             echo "</td>";
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='6' class='text-center'>No hay dispositivos en la bodega</td></tr>";
+                        echo "<tr><td colspan='6' class='text-center'>No hay mantenimientos programados</td></tr>";
                     }
-                    mysqli_free_result($result);
                     ?>
                 </tbody>
             </table>
@@ -149,6 +134,3 @@ if (!$result) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-<?php
-mysqli_close($link);
-?>

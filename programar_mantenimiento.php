@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once "includes/config.php";
 
 // Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
@@ -9,9 +10,25 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 
 // Procesar el formulario cuando se envía
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Aquí iría la lógica para guardar el mantenimiento programado en la base de datos
-    // Por ahora, solo mostraremos un mensaje de éxito
-    $success_message = "Mantenimiento programado con éxito.";
+    $fecha = $_POST['fecha'];
+    $tipo = $_POST['tipo'];
+    $descripcion = $_POST['descripcion'];
+    $id_usuario = $_SESSION['id_usuario'];
+    
+    // Insertar el nuevo mantenimiento en la base de datos
+    $sql = "INSERT INTO mantenimientos (fecha_programada, tipo, descripcion, id_usuario, estado) VALUES (?, ?, ?, ?, 'pendiente')";
+    
+    if($stmt = mysqli_prepare($link, $sql)){
+        mysqli_stmt_bind_param($stmt, "sssi", $fecha, $tipo, $descripcion, $id_usuario);
+        
+        if(mysqli_stmt_execute($stmt)){
+            $success_message = "Mantenimiento programado con éxito.";
+        } else{
+            $error_message = "Ocurrió un error al programar el mantenimiento.";
+        }
+        
+        mysqli_stmt_close($stmt);
+    }
 }
 ?>
 
@@ -40,11 +57,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+        .container {
+            max-width: 600px;
+        }
     </style>
 </head>
 <body>
-    <!-- Incluir la barra de navegación -->
-    <?php include 'navbar.php'; ?>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fas fa-tools me-2"></i>Programar Mantenimiento</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="mantenimientos.php"><i class="fas fa-calendar-check me-2"></i>Mantenimientos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
     <div class="container mt-5">
         <h2 class="mb-4">Programar Mantenimiento</h2>
@@ -52,6 +91,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php
         if (isset($success_message)) {
             echo "<div class='alert alert-success'>" . $success_message . "</div>";
+        }
+        if (isset($error_message)) {
+            echo "<div class='alert alert-danger'>" . $error_message . "</div>";
         }
         ?>
 
@@ -72,7 +114,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="descripcion" class="form-label">Descripción</label>
                 <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Programar Mantenimiento</button>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-calendar-plus me-2"></i>Programar Mantenimiento
+            </button>
         </form>
     </div>
 

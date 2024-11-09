@@ -1,11 +1,16 @@
 <?php
 session_start();
+require_once "includes/config.php";
 
 // Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
+
+// Obtener lista de envíos
+$sql = "SELECT e.*, u.username FROM envios e JOIN usuarios u ON e.usuario_id = u.id_usuario ORDER BY e.fecha_envio DESC";
+$result_envios = mysqli_query($link, $sql);
 ?>
 
 <!DOCTYPE html>
@@ -33,11 +38,37 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+        .table {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
     </style>
 </head>
 <body>
-    <!-- Incluir la barra de navegación -->
-    <?php include 'navbar.php'; ?>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fas fa-truck me-2"></i>Gestión de Envíos</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
     <div class="container mt-5">
         <h2 class="mb-4">Gestión de Envíos</h2>
@@ -48,27 +79,41 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             </a>
         </div>
 
-        <!-- Aquí puedes agregar una tabla o lista de envíos -->
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>ID Envío</th>
-                    <th>Destino</th>
-                    <th>Estado</th>
-                    <th>Fecha</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Aquí irían los datos de los envíos -->
-                <tr>
-                    <td>1</td>
-                    <td>Ciudad A</td>
-                    <td>En tránsito</td>
-                    <td>2023-06-15</td>
-                </tr>
-                <!-- Más filas... -->
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID Envío</th>
+                        <th>Usuario</th>
+                        <th>Destino</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    if (mysqli_num_rows($result_envios) > 0) {
+                        while($row = mysqli_fetch_assoc($result_envios)) {
+                            echo "<tr>";
+                            echo "<td>" . htmlspecialchars($row['id_envio']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['username']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['direccion_destino']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['estado_envio']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['fecha_envio']) . "</td>";
+                            echo "<td>";
+                            echo "<a href='ver_envio.php?id=" . $row['id_envio'] . "' class='btn btn-sm btn-info me-2'><i class='fas fa-eye'></i></a>";
+                            echo "<a href='editar_envio.php?id=" . $row['id_envio'] . "' class='btn btn-sm btn-warning me-2'><i class='fas fa-edit'></i></a>";
+                            echo "</td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='6' class='text-center'>No hay envíos registrados</td></tr>";
+                    }
+                    ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
