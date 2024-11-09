@@ -284,6 +284,42 @@ $result_mantenimientos = mysqli_query($link, $sql);
                 </div>
             </div>
         </div>
+
+        <div class="row mt-4">
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Informes</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Gestiona todos los informes del sistema.</p>
+                        <a href="admin_informes.php" class="btn btn-primary">Ir a Informes</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Reportes</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Administra todos los reportes generados.</p>
+                        <a href="admin_reportes.php" class="btn btn-primary">Ir a Reportes</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Facturas</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Gestiona todas las facturas del sistema.</p>
+                        <a href="admin_facturas.php" class="btn btn-primary">Ir a Facturas</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

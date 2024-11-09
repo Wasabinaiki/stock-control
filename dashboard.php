@@ -135,7 +135,7 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
                     <div class="card-body text-center">
                         <i class="fas fa-file-invoice fa-3x mb-3" style="color: #764ba2;"></i>
                         <h5 class="card-title">Factura</h5>
-                        <a href="factura.php" class="btn btn-primary">Gestionar Facturas</a>
+                        <a href="facturas.php" class="btn btn-primary">Gestionar Facturas</a>
                     </div>
                 </div>
             </div>
