@@ -8,28 +8,44 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     exit;
 }
 
+// Verificar si id_usuario está definido en la sesión
+if (!isset($_SESSION["id"])) {
+    header("location: error.php?mensaje=Sesión inválida");
+    exit;
+}
+
+$id_usuario = $_SESSION["id"];
+
 // Procesar el formulario cuando se envía
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fecha = $_POST['fecha'];
-    $tipo = $_POST['tipo'];
     $descripcion = $_POST['descripcion'];
-    $id_usuario = $_SESSION['id_usuario'];
+    $id_dispositivo = $_POST['id_dispositivo'];
     
     // Insertar el nuevo mantenimiento en la base de datos
-    $sql = "INSERT INTO mantenimientos (fecha_programada, tipo, descripcion, id_usuario, estado) VALUES (?, ?, ?, ?, 'pendiente')";
+    $sql = "INSERT INTO mantenimientos (id_dispositivo, fecha_programada, descripcion, estado) VALUES (?, ?, ?, 'programado')";
     
     if($stmt = mysqli_prepare($link, $sql)){
-        mysqli_stmt_bind_param($stmt, "sssi", $fecha, $tipo, $descripcion, $id_usuario);
+        mysqli_stmt_bind_param($stmt, "iss", $id_dispositivo, $fecha, $descripcion);
         
         if(mysqli_stmt_execute($stmt)){
             $success_message = "Mantenimiento programado con éxito.";
         } else{
-            $error_message = "Ocurrió un error al programar el mantenimiento.";
+            $error_message = "Ocurrió un error al programar el mantenimiento: " . mysqli_error($link);
         }
         
         mysqli_stmt_close($stmt);
+    } else {
+        $error_message = "Error en la preparación de la consulta: " . mysqli_error($link);
     }
 }
+
+// Obtener la lista de dispositivos del usuario
+$sql_dispositivos = "SELECT id_dispositivo, tipo, marca, modelo FROM dispositivos WHERE id_usuario = ?";
+$stmt_dispositivos = mysqli_prepare($link, $sql_dispositivos);
+mysqli_stmt_bind_param($stmt_dispositivos, "i", $id_usuario);
+mysqli_stmt_execute($stmt_dispositivos);
+$result_dispositivos = mysqli_stmt_get_result($stmt_dispositivos);
 ?>
 
 <!DOCTYPE html>
@@ -99,16 +115,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <div class="mb-3">
-                <label for="fecha" class="form-label">Fecha de Mantenimiento</label>
-                <input type="date" class="form-control" id="fecha" name="fecha" required>
+                <label for="id_dispositivo" class="form-label">Dispositivo</label>
+                <select class="form-select" id="id_dispositivo" name="id_dispositivo" required>
+                    <option value="">Seleccione un dispositivo</option>
+                    <?php while ($row = mysqli_fetch_assoc($result_dispositivos)): ?>
+                        <option value="<?php echo $row['id_dispositivo']; ?>">
+                            <?php echo htmlspecialchars($row['tipo'] . ' - ' . $row['marca'] . ' ' . $row['modelo']); ?>
+                        </option>
+                    <?php endwhile; ?>
+                </select>
             </div>
             <div class="mb-3">
-                <label for="tipo" class="form-label">Tipo de Mantenimiento</label>
-                <select class="form-select" id="tipo" name="tipo" required>
-                    <option value="">Seleccione un tipo</option>
-                    <option value="preventivo">Preventivo</option>
-                    <option value="correctivo">Correctivo</option>
-                </select>
+                <label for="fecha" class="form-label">Fecha de Mantenimiento</label>
+                <input type="date" class="form-control" id="fecha" name="fecha" required>
             </div>
             <div class="mb-3">
                 <label for="descripcion" class="form-label">Descripción</label>
