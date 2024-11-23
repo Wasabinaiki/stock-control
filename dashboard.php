@@ -16,7 +16,7 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Panel de Control</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -48,6 +48,13 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+        .welcome-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .welcome-card .card-title, .welcome-card .card-text {
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -71,7 +78,19 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
     </nav>
 
     <div class="container mt-5">
-        <h2 class="mb-4">Bienvenido, <?php echo htmlspecialchars($_SESSION["username"]); ?></h2>
+        <!-- Nuevo mensaje de bienvenida -->
+        <div class="card welcome-card mb-5">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Bienvenido, <?php echo htmlspecialchars($_SESSION["username"]); ?></h2>
+                <h5 class="card-subtitle mb-3">Panel de Control de Dispositivos</h5>
+                <p class="card-text">
+                    Aquí podrás gestionar todos tus dispositivos, incluyendo computadoras, tablets y celulares. 
+                    Además, tendrás acceso a informes, reportes, facturas y mucho más. Utiliza las opciones a 
+                    continuación para navegar por las diferentes funcionalidades del sistema.
+                </p>
+            </div>
+        </div>
+
         <div class="row">
             <!-- Dispositivos -->
             <div class="col-md-4 mb-4">
@@ -207,6 +226,17 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
                 </div>
             </div>
 
+            <!-- Nuevo botón para Preguntas Frecuentes -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-question-circle fa-3x mb-3" style="color: #764ba2;"></i>
+                        <h5 class="card-title">Preguntas Frecuentes</h5>
+                        <a href="faq.php" class="btn btn-primary">Ver FAQ</a>
+                    </div>
+                </div>
+            </div>
+
             <?php if ($is_admin): ?>
             <!-- Opciones de administrador -->
             <div class="col-md-4 mb-4">
@@ -224,15 +254,6 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
                         <i class="fas fa-user-shield fa-3x mb-3" style="color: #764ba2;"></i>
                         <h5 class="card-title">Panel de Administración</h5>
                         <a href="admin_dashboard.php" class="btn btn-primary">Acceder al Panel</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-tools fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Mantenimientos</h5>
-                        <a href="mantenimientos.php" class="btn btn-primary">Ver Mantenimientos</a>
                     </div>
                 </div>
             </div>

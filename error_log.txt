@@ -1,0 +1,112 @@
+[2024-11-22 23:01:11] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:01:11] Total equipos hoy: 0
+[2024-11-22 23:01:11] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-22 23:01:16] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:01:16] Total equipos hoy: 0
+[2024-11-22 23:01:16] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-22 23:01:16] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:01:16] Total equipos hoy: 0
+[2024-11-22 23:01:16] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-22 23:04:22] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:04:22] Total equipos hoy: 0
+[2024-11-22 23:04:22] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-22 23:04:24] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:04:24] Total equipos hoy: 0
+[2024-11-22 23:04:24] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-22 23:04:24] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:04:24] Total equipos hoy: 0
+[2024-11-22 23:04:24] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-22 23:04:25] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:04:25] Total equipos hoy: 0
+[2024-11-22 23:04:25] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-22 23:04:25] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:04:25] Total equipos hoy: 0
+[2024-11-22 23:04:25] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-22 23:07:57] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:07:57] Total equipos hoy: 0
+[2024-11-22 23:07:57] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-22 23:07:58] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:07:58] Total equipos hoy: 0
+[2024-11-22 23:07:58] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-22 23:07:59] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:07:59] Total equipos hoy: 0
+[2024-11-22 23:07:59] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-22 23:08:12] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:08:12] Total equipos hoy: 0
+[2024-11-22 23:08:12] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-22 23:10:33] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-22 23:10:33] Total equipos hoy: 0
+[2024-11-22 23:10:33] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-23 00:32:42] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-23 00:32:42] Total equipos hoy: 0
+[2024-11-23 00:32:42] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-23 00:32:47] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-23 00:32:47] Total equipos hoy: 0
+[2024-11-23 00:32:47] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2024-11-23 00:42:17] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2024-11-23 00:42:17] Total equipos hoy: 0
+[2024-11-23 00:42:17] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC

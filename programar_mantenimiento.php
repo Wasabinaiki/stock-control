@@ -29,7 +29,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         mysqli_stmt_bind_param($stmt, "iss", $id_dispositivo, $fecha, $descripcion);
         
         if(mysqli_stmt_execute($stmt)){
-            $success_message = "Mantenimiento programado con éxito.";
+            $id_mantenimiento = mysqli_insert_id($link);
+            header("Location: pagar_mantenimiento.php?id=" . $id_mantenimiento);
+            exit();
         } else{
             $error_message = "Ocurrió un error al programar el mantenimiento: " . mysqli_error($link);
         }
@@ -105,9 +107,6 @@ $result_dispositivos = mysqli_stmt_get_result($stmt_dispositivos);
         <h2 class="mb-4">Programar Mantenimiento</h2>
 
         <?php
-        if (isset($success_message)) {
-            echo "<div class='alert alert-success'>" . $success_message . "</div>";
-        }
         if (isset($error_message)) {
             echo "<div class='alert alert-danger'>" . $error_message . "</div>";
         }

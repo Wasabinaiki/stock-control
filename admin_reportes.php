@@ -8,9 +8,44 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION
     exit;
 }
 
+// Función para registrar errores
+function logError($message) {
+    error_log(date('[Y-m-d H:i:s] ') . $message . "\n", 3, 'error_log.txt');
+}
+
+// Obtener el número de equipos registrados hoy
+$sql_equipos_hoy = "SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()";
+$result_equipos_hoy = mysqli_query($link, $sql_equipos_hoy);
+if (!$result_equipos_hoy) {
+    logError("Error en la consulta de equipos: " . mysqli_error($link));
+}
+$row_equipos_hoy = mysqli_fetch_assoc($result_equipos_hoy);
+$total_equipos_hoy = $row_equipos_hoy['total_equipos'];
+
+// Depuración: Mostrar la consulta SQL y el resultado
+logError("SQL Equipos: " . $sql_equipos_hoy);
+logError("Total equipos hoy: " . $total_equipos_hoy);
+
 // Obtener todos los reportes
-$sql = "SELECT r.*, u.username FROM reportes r JOIN usuarios u ON r.id_usuario = u.id_usuario ORDER BY r.fecha_creacion DESC";
+$sql = "SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC";
+
+// Filtrar por tipo de mantenimiento si se proporciona
+$tipo_mantenimiento = isset($_GET['tipo_mantenimiento']) ? $_GET['tipo_mantenimiento'] : '';
+if ($tipo_mantenimiento) {
+    $sql .= " WHERE r.tipo_mantenimiento = '" . mysqli_real_escape_string($link, $tipo_mantenimiento) . "'";
+}
+
 $result = mysqli_query($link, $sql);
+if (!$result) {
+    logError("Error en la consulta de reportes: " . mysqli_error($link));
+}
+
+// Depuración: Mostrar la consulta SQL de reportes
+logError("SQL Reportes: " . $sql);
 ?>
 
 <!DOCTYPE html>
@@ -35,6 +70,7 @@ $result = mysqli_query($link, $sql);
             border: none;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
         .card-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -73,7 +109,44 @@ $result = mysqli_query($link, $sql);
 
     <div class="container mt-4">
         <h2 class="mb-4">Gestión de Reportes</h2>
-        <div class="card">
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Resumen Diario</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Equipos registrados hoy:</strong> <?php echo $total_equipos_hoy; ?></p>
+                        <!-- Agregar un botón para actualizar manualmente -->
+                        <form method="POST">
+                            <button type="submit" name="refresh" class="btn btn-sm btn-primary">Actualizar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Filtrar por Tipo de Mantenimiento</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="" method="GET" class="mb-3">
+                            <div class="input-group">
+                                <select name="tipo_mantenimiento" class="form-select">
+                                    <option value="">Todos</option>
+                                    <option value="preventivo" <?php echo $tipo_mantenimiento == 'preventivo' ? 'selected' : ''; ?>>Preventivo</option>
+                                    <option value="correctivo" <?php echo $tipo_mantenimiento == 'correctivo' ? 'selected' : ''; ?>>Correctivo</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary">Filtrar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">Todos los Reportes</h5>
             </div>
@@ -85,8 +158,9 @@ $result = mysqli_query($link, $sql);
                                 <tr>
                                     <th>ID</th>
                                     <th>Usuario</th>
-                                    <th>Tipo de Reporte</th>
-                                    <th>Fecha de Creación</th>
+                                    <th>Dispositivo</th>
+                                    <th>Tipo de Mantenimiento</th>
+                                    <th>Fecha de Reporte</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -94,20 +168,21 @@ $result = mysqli_query($link, $sql);
                             <tbody>
                                 <?php while ($row = mysqli_fetch_assoc($result)): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($row['id']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['id_reporte']); ?></td>
                                         <td><?php echo htmlspecialchars($row['username']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['tipo']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['fecha_creacion']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['marca'] . ' ' . $row['modelo']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['tipo_mantenimiento']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['fecha_reporte']); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php echo $row['estado'] == 'Completado' ? 'success' : 'warning'; ?>">
-                                                <?php echo htmlspecialchars($row['estado']); ?>
+                                            <span class="badge bg-<?php echo $row['estado_reporte'] == 'Finalizado' ? 'success' : 'warning'; ?>">
+                                                <?php echo htmlspecialchars($row['estado_reporte']); ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <a href="ver_reporte.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary">
+                                            <a href="ver_reporte.php?id=<?php echo $row['id_reporte']; ?>" class="btn btn-sm btn-primary">
                                                 <i class="fas fa-eye me-1"></i>Ver
                                             </a>
-                                            <a href="editar_reporte.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning">
+                                            <a href="editar_reporte.php?id=<?php echo $row['id_reporte']; ?>" class="btn btn-sm btn-warning">
                                                 <i class="fas fa-edit me-1"></i>Editar
                                             </a>
                                         </td>
@@ -126,3 +201,8 @@ $result = mysqli_query($link, $sql);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+<?php
+// Cerrar la conexión a la base de datos
+mysqli_close($link);
+?>

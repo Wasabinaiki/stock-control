@@ -8,6 +8,26 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION
     exit;
 }
 
+// Obtener el número de usuarios registrados
+$sql_usuarios = "SELECT COUNT(*) as total_usuarios FROM usuarios";
+$result_usuarios = mysqli_query($link, $sql_usuarios);
+$row_usuarios = mysqli_fetch_assoc($result_usuarios);
+$total_usuarios = $row_usuarios['total_usuarios'];
+
+// Obtener las ventas
+function obtener_ventas($periodo) {
+    global $link;
+    $sql = "SELECT SUM(total) as total_ventas FROM factura WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 1 $periodo)";
+    $result = mysqli_query($link, $sql);
+    $row = mysqli_fetch_assoc($result);
+    return $row['total_ventas'] ?? 0;
+}
+
+$ventas_diarias = obtener_ventas('DAY');
+$ventas_semanales = obtener_ventas('WEEK');
+$ventas_quincenales = obtener_ventas('WEEK') * 2; // Aproximación
+$ventas_mensuales = obtener_ventas('MONTH');
+
 // Obtener todos los informes
 $sql = "SELECT i.*, u.username FROM informes i JOIN usuarios u ON i.id_usuario = u.id_usuario ORDER BY i.fecha_creacion DESC";
 $result = mysqli_query($link, $sql);
@@ -35,6 +55,7 @@ $result = mysqli_query($link, $sql);
             border: none;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
         .card-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -73,7 +94,25 @@ $result = mysqli_query($link, $sql);
 
     <div class="container mt-4">
         <h2 class="mb-4">Gestión de Informes</h2>
-        <div class="card">
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Resumen General</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Total de usuarios registrados:</strong> <?php echo $total_usuarios; ?></p>
+                        <p><strong>Ventas diarias:</strong> $<?php echo number_format($ventas_diarias, 2); ?></p>
+                        <p><strong>Ventas semanales:</strong> $<?php echo number_format($ventas_semanales, 2); ?></p>
+                        <p><strong>Ventas quincenales:</strong> $<?php echo number_format($ventas_quincenales, 2); ?></p>
+                        <p><strong>Ventas mensuales:</strong> $<?php echo number_format($ventas_mensuales, 2); ?></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">Todos los Informes</h5>
             </div>
@@ -87,7 +126,6 @@ $result = mysqli_query($link, $sql);
                                     <th>Usuario</th>
                                     <th>Título</th>
                                     <th>Fecha de Creación</th>
-                                    <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -98,11 +136,6 @@ $result = mysqli_query($link, $sql);
                                         <td><?php echo htmlspecialchars($row['username']); ?></td>
                                         <td><?php echo htmlspecialchars($row['titulo']); ?></td>
                                         <td><?php echo htmlspecialchars($row['fecha_creacion']); ?></td>
-                                        <td>
-                                            <span class="badge bg-<?php echo $row['estado'] == 'Completado' ? 'success' : 'warning'; ?>">
-                                                <?php echo htmlspecialchars($row['estado']); ?>
-                                            </span>
-                                        </td>
                                         <td>
                                             <a href="ver_informe.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary">
                                                 <i class="fas fa-eye me-1"></i>Ver
