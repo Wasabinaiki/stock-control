@@ -75,7 +75,7 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
             margin-left: -250px;
         }
         .sidebar .nav-link {
-            color: #000 !important; /* Manteniendo tu solución */
+            color: #000 !important;
             font-weight: 500;
             padding: 0.75rem 1rem;
             border-radius: 0;
