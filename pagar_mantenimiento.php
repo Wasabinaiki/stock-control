@@ -27,33 +27,15 @@ if ($stmt = mysqli_prepare($link, $sql)) {
     mysqli_stmt_close($stmt);
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['pagar'])) {
-    // Aquí iría la lógica de procesamiento del pago
-    // Por ahora, simplemente actualizaremos el estado del mantenimiento
-    $sql_update = "UPDATE mantenimientos SET estado = 'pagado' WHERE id = ?";
+// Ahora solo actualizamos el estado a "pendiente de pago" en lugar de procesarlo directamente
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['confirmar'])) {
+    $sql_update = "UPDATE mantenimientos SET estado = 'pendiente de pago' WHERE id = ?";
     if ($stmt = mysqli_prepare($link, $sql_update)) {
         mysqli_stmt_bind_param($stmt, "i", $id_mantenimiento);
         if (mysqli_stmt_execute($stmt)) {
-            // Generar factura
-            $numero_factura = 'FACT-' . date('YmdHis') . '-' . $id_mantenimiento;
-            $monto = 19900.00; // Monto fijo de $19.900 COP
-            $fecha_emision = date('Y-m-d');
-            $estado = 'Pagada';
-            
-            $sql_factura = "INSERT INTO facturas (id_usuario, numero_factura, monto, fecha_emision, estado) VALUES (?, ?, ?, ?, ?)";
-            if ($stmt_factura = mysqli_prepare($link, $sql_factura)) {
-                mysqli_stmt_bind_param($stmt_factura, "isdss", $_SESSION["id"], $numero_factura, $monto, $fecha_emision, $estado);
-                if (mysqli_stmt_execute($stmt_factura)) {
-                    $mensaje = "Pago procesado con éxito. El mantenimiento ha sido confirmado y se ha generado la factura.";
-                } else {
-                    $error = "Error al generar la factura. Por favor, contacte al administrador.";
-                }
-                mysqli_stmt_close($stmt_factura);
-            } else {
-                $error = "Error al preparar la consulta de factura. Por favor, contacte al administrador.";
-            }
+            $mensaje = "Solicitud registrada con éxito. Un administrador verificará tu pago y se pondrá en contacto contigo para confirmar el mantenimiento.";
         } else {
-            $error = "Error al procesar el pago. Por favor, inténtelo de nuevo.";
+            $error = "Error al registrar la solicitud. Por favor, contacte al administrador.";
         }
         mysqli_stmt_close($stmt);
     }
@@ -99,6 +81,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['pagar'])) {
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+        .qr-container {
+            text-align: center;
+            margin: 20px auto;
+            max-width: 300px;
+        }
+        .qr-code {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .payment-instructions {
+            background-color: #f0f8ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
     </style>
 </head>
 <body>
@@ -141,26 +141,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['pagar'])) {
                     <p><strong>Descripción:</strong> <?php echo htmlspecialchars($mantenimiento['descripcion']); ?></p>
                     <p><strong>Monto a Pagar:</strong> $19.900 COP</p>
 
+                    <div class="payment-instructions">
+                        <h5><i class="fas fa-info-circle me-2"></i>Instrucciones de Pago</h5>
+                        <p>Realiza el pago usando este código QR de Nequi y deja tus datos en la descripción del pago. Una vez se registre la transacción un administrador registrará tu mantenimiento y se pondrá en contacto contigo para proceder con el mantenimiento de tu dispositivo.</p>
+                    </div>
+
+                    <!-- Código QR de Nequi -->
+                    <div class="qr-container">
+                        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/QR-UdE147canGWl1Z7XbuOIASjdYdUqPw.jpeg" alt="Código QR de Nequi - DANIEL TRUQUE" class="qr-code">
+                        <p class="mt-3 text-muted">Escanea este código con la app de Nequi</p>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Importante:</strong> En la descripción del pago incluye tu nombre completo y el ID de mantenimiento: <strong><?php echo $id_mantenimiento; ?></strong>
+                    </div>
+
                     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"] . "?id=" . $id_mantenimiento); ?>" method="post">
-                        <div class="mb-3">
-                            <label for="nombre" class="form-label">Nombre en la Tarjeta</label>
-                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirmacion" name="confirmacion" required>
+                            <label class="form-check-label" for="confirmacion">
+                                He realizado el pago o lo realizaré en breve
+                            </label>
                         </div>
-                        <div class="mb-3">
-                            <label for="numero_tarjeta" class="form-label">Número de Tarjeta</label>
-                            <input type="text" class="form-control" id="numero_tarjeta" name="numero_tarjeta" required>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="fecha_vencimiento" class="form-label">Fecha de Vencimiento</label>
-                                <input type="text" class="form-control" id="fecha_vencimiento" name="fecha_vencimiento" placeholder="MM/AA" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="cvv" class="form-label">CVV</label>
-                                <input type="text" class="form-control" id="cvv" name="cvv" required>
-                            </div>
-                        </div>
-                        <button type="submit" name="pagar" class="btn btn-primary btn-lg w-100">Pagar $19.900 COP</button>
+                        <button type="submit" name="confirmar" class="btn btn-primary btn-lg w-100">Confirmar Solicitud</button>
                     </form>
                 <?php else: ?>
                     <p>No se encontró información del mantenimiento.</p>

@@ -1,16 +1,13 @@
 <?php
 session_start();
-
 // Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
-
 // Determinar si el usuario es administrador
 $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -22,24 +19,14 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
     <style>
         body {
             background-color: #f8f9fa;
+            overflow-x: hidden;
         }
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 1030;
         }
         .navbar-brand, .nav-link {
             color: white !important;
-        }
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        .card-title {
-            color: #764ba2;
         }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -51,9 +38,127 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
         .welcome-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .welcome-card .card-title, .welcome-card .card-text {
             color: white;
+        }
+        /* Sidebar styles - con scroll */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding-top: 56px;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #f8f9fa;
+            transition: all 0.3s;
+            width: 250px;
+            overflow-y: auto; /* Añadir scroll vertical */
+            scrollbar-width: thin; /* Para Firefox */
+            scrollbar-color: #764ba2 #f8f9fa; /* Para Firefox */
+        }
+        /* Estilo para la barra de desplazamiento en Chrome, Edge, Safari */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: #f8f9fa;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: #764ba2;
+            border-radius: 6px;
+        }
+        .sidebar-collapsed {
+            margin-left: -250px;
+        }
+        .sidebar .nav-link {
+            color: #000 !important; /* Manteniendo tu solución */
+            font-weight: 500;
+            padding: 0.75rem 1rem;
+            border-radius: 0;
+            transition: all 0.2s;
+        }
+        
+        .sidebar .nav-link:hover {
+            background-color: rgba(118, 75, 162, 0.1);
+            color: #000; /* Mantener el texto negro al pasar el cursor */
+        }
+        .sidebar .nav-link.active {
+            background-color: rgba(118, 75, 162, 0.2);
+            color: #764ba2; /* Color destacado para el enlace activo */
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            color: #764ba2; /* Mantener el color de los íconos */
+        }
+        .sidebar-heading {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            padding: 1rem 1rem 0.5rem;
+            color: #764ba2;
+            font-weight: bold;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .main-content-expanded {
+            margin-left: 0;
+        }
+        .toggle-sidebar {
+            position: fixed;
+            left: 250px;
+            top: 70px;
+            background: #764ba2;
+            color: white;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            padding: 10px;
+            z-index: 99;
+            transition: all 0.3s;
+        }
+        .toggle-sidebar.collapsed {
+            left: 0;
+        }
+        .feature-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            color: #764ba2;
+            margin-bottom: 1rem;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -250px;
+            }
+            .sidebar-collapsed {
+                margin-left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .main-content-expanded {
+                margin-left: 250px;
+            }
+            .toggle-sidebar {
+                left: 0;
+            }
+            .toggle-sidebar.collapsed {
+                left: 250px;
+            }
         }
     </style>
 </head>
@@ -76,191 +181,224 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
             </div>
         </div>
     </nav>
-
-    <div class="container mt-5">
-        <!-- Nuevo mensaje de bienvenida -->
-        <div class="card welcome-card mb-5">
-            <div class="card-body">
-                <h2 class="card-title mb-3">Bienvenido, <?php echo htmlspecialchars($_SESSION["username"]); ?></h2>
-                <h5 class="card-subtitle mb-3">Panel de Control de Dispositivos</h5>
-                <p class="card-text">
-                    Aquí podrás gestionar todos tus dispositivos, incluyendo computadoras, tablets y celulares. 
-                    Además, tendrás acceso a informes, reportes, facturas y mucho más. Utiliza las opciones a 
-                    continuación para navegar por las diferentes funcionalidades del sistema.
-                </p>
+    <!-- Sidebar con scroll -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-heading">Dispositivos</div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="dispositivos.php?tipo=computadora">
+                    <i class="fas fa-desktop"></i> Computadoras
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="dispositivos.php?tipo=tablet">
+                    <i class="fas fa-tablet-alt"></i> Tablets
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="dispositivos.php?tipo=celular">
+                    <i class="fas fa-mobile-alt"></i> Celulares
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-heading">Gestión</div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="envios.php">
+                    <i class="fas fa-truck"></i> Envíos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="informes.php">
+                    <i class="fas fa-chart-bar"></i> Informes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="reportes.php">
+                    <i class="fas fa-file-alt"></i> Reportes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="facturas.php">
+                    <i class="fas fa-file-invoice"></i> Facturas
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-heading">Soporte</div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="pqrs.php">
+                    <i class="fas fa-question-circle"></i> PQRS
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="configuracion.php">
+                    <i class="fas fa-cog"></i> Configuración
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="faq.php">
+                    <i class="fas fa-question-circle"></i> Preguntas Frecuentes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="ayuda.php">
+                    <i class="fas fa-question"></i> Ayuda
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-heading">Información</div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="terminos.php">
+                    <i class="fas fa-file-alt"></i> Términos y Condiciones
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="privacidad.php">
+                    <i class="fas fa-shield-alt"></i> Políticas de Privacidad
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="quienes_somos.php">
+                    <i class="fas fa-users"></i> Quiénes Somos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="contacto.php">
+                    <i class="fas fa-envelope"></i> Contáctenos
+                </a>
+            </li>
+        </ul>
+        <?php if ($is_admin): ?>
+        <div class="sidebar-heading">Administración</div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="bodega.php">
+                    <i class="fas fa-warehouse"></i> Bodega
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="admin_dashboard.php">
+                    <i class="fas fa-user-shield"></i> Panel de Administración
+                </a>
+            </li>
+        </ul>
+        <?php endif; ?>
+        <!-- Espacio adicional al final para asegurar que los últimos elementos sean accesibles -->
+        <div style="height: 20px;"></div>
+    </div>
+    <!-- Toggle sidebar button -->
+    <button class="toggle-sidebar" id="toggleSidebar">
+        <i class="fas fa-chevron-left" id="toggleIcon"></i>
+    </button>
+    <!-- Main content -->
+    <div class="main-content" id="mainContent">
+        <div class="container-fluid">
+            <!-- Mensaje de bienvenida -->
+            <div class="card welcome-card mb-5">
+                <div class="card-body">
+                    <h2 class="card-title mb-3">Bienvenido, <?php echo htmlspecialchars($_SESSION["username"]); ?></h2>
+                    <h5 class="card-subtitle mb-3">Panel de Control de Dispositivos</h5>
+                    <p class="card-text">
+                        Bienvenido a tu panel de control personalizado. Desde aquí podrás gestionar todos tus dispositivos, 
+                        incluyendo computadoras, tablets y celulares. Además, tendrás acceso a informes, reportes, facturas y 
+                        mucho más. Utiliza el menú lateral para navegar por las diferentes funcionalidades del sistema.
+                    </p>
+                </div>
             </div>
-        </div>
-
-        <div class="row">
-            <!-- Dispositivos -->
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-desktop fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Computadoras</h5>
-                        <a href="dispositivos.php?tipo=computadora" class="btn btn-primary">Ver Computadoras</a>
+            <!-- Características destacadas -->
+            <h3 class="mb-4">Características Destacadas</h3>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-sync-alt feature-icon"></i>
+                            <h5 class="card-title">Gestión Simplificada</h5>
+                            <p class="card-text">Administra todos tus dispositivos desde una única plataforma intuitiva y fácil de usar.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-line feature-icon"></i>
+                            <h5 class="card-title">Informes Detallados</h5>
+                            <p class="card-text">Accede a informes y estadísticas detalladas sobre el estado y rendimiento de tus dispositivos.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-shield-alt feature-icon"></i>
+                            <h5 class="card-title">Seguridad Garantizada</h5>
+                            <p class="card-text">Tus datos están protegidos con los más altos estándares de seguridad y privacidad.</p>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-tablet-alt fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Tablets</h5>
-                        <a href="dispositivos.php?tipo=tablet" class="btn btn-primary">Ver Tablets</a>
-                    </div>
+            <!-- Actividad reciente -->
+            <h3 class="mb-4 mt-4">Actividad Reciente</h3>
+            <div class="card">
+                <div class="card-body">
+                    <p class="text-muted">No hay actividad reciente para mostrar.</p>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-mobile-alt fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Celulares</h5>
-                        <a href="dispositivos.php?tipo=celular" class="btn btn-primary">Ver Celulares</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Nuevas opciones -->
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-truck fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Envíos</h5>
-                        <a href="envios.php" class="btn btn-primary">Gestionar Envíos</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-chart-bar fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Informes</h5>
-                        <a href="informes.php" class="btn btn-primary">Ver Informes</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-file-alt fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Reportes</h5>
-                        <a href="reportes.php" class="btn btn-primary">Ver Reportes</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-file-invoice fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Factura</h5>
-                        <a href="facturas.php" class="btn btn-primary">Gestionar Facturas</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Opciones adicionales -->
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-question-circle fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">PQRS</h5>
-                        <a href="pqrs.php" class="btn btn-primary">Enviar PQRS</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-cog fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Configuración</h5>
-                        <a href="configuracion.php" class="btn btn-primary">Configuración de la App</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Opciones informativas -->
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-file-alt fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Términos y Condiciones</h5>
-                        <a href="terminos.php" class="btn btn-primary">Ver Términos</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-shield-alt fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Políticas de Privacidad</h5>
-                        <a href="privacidad.php" class="btn btn-primary">Ver Políticas</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-users fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Quiénes Somos</h5>
-                        <a href="quienes_somos.php" class="btn btn-primary">Conocer Más</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-envelope fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Contáctenos</h5>
-                        <a href="contacto.php" class="btn btn-primary">Contactar</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-question fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Ayuda</h5>
-                        <a href="ayuda.php" class="btn btn-primary">Obtener Ayuda</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Nuevo botón para Preguntas Frecuentes -->
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-question-circle fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Preguntas Frecuentes</h5>
-                        <a href="faq.php" class="btn btn-primary">Ver FAQ</a>
-                    </div>
-                </div>
-            </div>
-
-            <?php if ($is_admin): ?>
-            <!-- Opciones de administrador -->
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-warehouse fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Bodega</h5>
-                        <a href="bodega.php" class="btn btn-primary">Acceder a Bodega</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-user-shield fa-3x mb-3" style="color: #764ba2;"></i>
-                        <h5 class="card-title">Panel de Administración</h5>
-                        <a href="admin_dashboard.php" class="btn btn-primary">Acceder al Panel</a>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Toggle sidebar functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const toggleIcon = document.getElementById('toggleIcon');
+            // Check for saved state
+            const sidebarState = localStorage.getItem('sidebarState');
+            if (sidebarState === 'collapsed') {
+                sidebar.classList.add('sidebar-collapsed');
+                mainContent.classList.add('main-content-expanded');
+                toggleBtn.classList.add('collapsed');
+                toggleIcon.classList.remove('fa-chevron-left');
+                toggleIcon.classList.add('fa-chevron-right');
+            }
+            toggleBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('sidebar-collapsed');
+                mainContent.classList.toggle('main-content-expanded');
+                toggleBtn.classList.toggle('collapsed');
+                if (sidebar.classList.contains('sidebar-collapsed')) {
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');
+                    localStorage.setItem('sidebarState', 'collapsed');
+                } else {
+                    toggleIcon.classList.remove('fa-chevron-right');
+                    toggleIcon.classList.add('fa-chevron-left');
+                    localStorage.setItem('sidebarState', 'expanded');
+                }
+            });
+            // Handle mobile view
+            function checkWidth() {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.add('sidebar-collapsed');
+                    mainContent.classList.add('main-content-expanded');
+                    toggleBtn.classList.add('collapsed');
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');
+                } else if (sidebarState !== 'collapsed') {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    mainContent.classList.remove('main-content-expanded');
+                    toggleBtn.classList.remove('collapsed');
+                    toggleIcon.classList.remove('fa-chevron-right');
+                    toggleIcon.classList.add('fa-chevron-left');
+                }
+            }
+            // Initial check
+            checkWidth();
+            // Listen for window resize
+            window.addEventListener('resize', checkWidth);
+        });
+    </script>
 </body>
 </html>
