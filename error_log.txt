@@ -261,3 +261,146 @@
         JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
         JOIN usuarios u ON d.id_usuario = u.id_usuario 
         ORDER BY r.fecha_reporte DESC
+[2025-04-02 00:41:49] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 00:41:49] Total equipos hoy: 0
+[2025-04-02 00:41:49] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2025-04-02 03:56:01] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 03:56:01] Total equipos hoy: 0
+[2025-04-02 03:56:01] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2025-04-02 04:35:03] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 04:35:03] Total equipos hoy: 1
+[2025-04-02 04:35:03] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2025-04-02 04:55:54] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 04:55:54] Total equipos hoy: 1
+[2025-04-02 04:55:54] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2025-04-02 05:36:46] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 05:36:46] Total equipos hoy: 5
+[2025-04-02 05:36:46] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2025-04-02 05:36:48] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 05:36:48] Total equipos hoy: 5
+[2025-04-02 05:36:48] SQL Reportes: SELECT r.*, d.marca, d.modelo, u.username 
+        FROM reportes r 
+        JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY r.fecha_reporte DESC
+[2025-04-02 05:55:38] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 05:55:38] Total equipos hoy: 5
+[2025-04-02 05:57:49] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 05:57:49] Total equipos hoy: 5
+[2025-04-02 05:59:21] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 05:59:21] Total equipos hoy: 5
+[2025-04-02 06:05:09] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:05:09] Total equipos hoy: 5
+[2025-04-02 06:05:09] SQL Mantenimientos: SELECT m.*, d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
+        FROM mantenimientos m 
+        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY m.fecha_programada DESC
+[2025-04-02 06:07:43] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:07:43] Total equipos hoy: 5
+[2025-04-02 06:07:43] SQL Mantenimientos: SELECT m.*, d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
+        FROM mantenimientos m 
+        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY m.fecha_programada DESC
+[2025-04-02 06:27:18] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:27:18] Total equipos hoy: 5
+[2025-04-02 06:41:47] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:41:47] Total equipos hoy: 5
+[2025-04-02 06:41:49] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:41:49] Total equipos hoy: 5
+[2025-04-02 06:42:56] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:42:56] Total equipos hoy: 5
+[2025-04-02 06:46:19] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:46:19] Total equipos hoy: 5
+[2025-04-02 06:46:19] SQL Mantenimientos: SELECT m.id, m.id_dispositivo, m.fecha_programada, m.descripcion, m.estado, 
+               d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
+        FROM mantenimientos m 
+        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY m.fecha_programada DESC
+[2025-04-02 06:46:21] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:46:21] Total equipos hoy: 5
+[2025-04-02 06:46:21] SQL Mantenimientos: SELECT m.id, m.id_dispositivo, m.fecha_programada, m.descripcion, m.estado, 
+               d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
+        FROM mantenimientos m 
+        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY m.fecha_programada DESC
+[2025-04-02 06:46:25] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:46:25] Total equipos hoy: 5
+[2025-04-02 06:46:25] SQL Mantenimientos: SELECT m.id, m.id_dispositivo, m.fecha_programada, m.descripcion, m.estado, 
+               d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
+        FROM mantenimientos m 
+        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY m.fecha_programada DESC
+[2025-04-02 06:46:34] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:46:34] Total equipos hoy: 5
+[2025-04-02 06:46:34] SQL Mantenimientos: SELECT m.id, m.id_dispositivo, m.fecha_programada, m.descripcion, m.estado, 
+               d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
+        FROM mantenimientos m 
+        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY m.fecha_programada DESC
+[2025-04-02 06:47:05] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:47:05] Total equipos hoy: 5
+[2025-04-02 06:47:05] SQL Mantenimientos: SELECT m.id, m.id_dispositivo, m.fecha_programada, m.descripcion, m.estado, 
+               d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
+        FROM mantenimientos m 
+        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY m.fecha_programada DESC
+[2025-04-02 06:47:06] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:47:06] Total equipos hoy: 5
+[2025-04-02 06:47:06] SQL Mantenimientos: SELECT m.id, m.id_dispositivo, m.fecha_programada, m.descripcion, m.estado, 
+               d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
+        FROM mantenimientos m 
+        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY m.fecha_programada DESC
+[2025-04-02 06:49:11] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:49:11] Total equipos hoy: 5
+[2025-04-02 06:49:11] SQL Mantenimientos: SELECT m.id, m.id_dispositivo, m.fecha_programada, m.descripcion, m.estado, 
+                  d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
+           FROM mantenimientos m 
+           JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
+           JOIN usuarios u ON d.id_usuario = u.id_usuario 
+           WHERE d.tipo = 'computadora'
+           ORDER BY m.fecha_programada DESC
+[2025-04-02 06:49:15] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:49:15] Total equipos hoy: 5
+[2025-04-02 06:49:15] SQL Mantenimientos: SELECT m.id, m.id_dispositivo, m.fecha_programada, m.descripcion, m.estado, 
+               d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
+        FROM mantenimientos m 
+        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY m.fecha_programada DESC
+[2025-04-02 06:50:04] SQL Equipos: SELECT COUNT(*) as total_equipos FROM dispositivos WHERE DATE(fecha_entrega) = CURDATE()
+[2025-04-02 06:50:04] Total equipos hoy: 5
+[2025-04-02 06:50:04] SQL Mantenimientos: SELECT m.id, m.id_dispositivo, m.fecha_programada, m.descripcion, m.estado, 
+               d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
+        FROM mantenimientos m 
+        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
+        JOIN usuarios u ON d.id_usuario = u.id_usuario 
+        ORDER BY m.fecha_programada DESC

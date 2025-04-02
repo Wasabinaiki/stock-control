@@ -21,20 +21,23 @@ if (isset($_SESSION['error_message'])) {
     unset($_SESSION['error_message']);
 }
 
-// Obtener dispositivos de la base de datos con una consulta mejorada
-$sql = "SELECT id_dispositivo, tipo, marca, modelo, estado FROM dispositivos";
+// Obtener lista de envíos con información de usuarios
+$sql = "SELECT e.*, u.username FROM envios e 
+        JOIN usuarios u ON e.usuario_id = u.id_usuario 
+        ORDER BY e.fecha_envio DESC";
 $result = mysqli_query($link, $sql);
 
 if (!$result) {
     die("Error en la consulta: " . mysqli_error($link));
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bodega</title>
+    <title>Administración de Envíos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -92,21 +95,20 @@ if (!$result) {
         .completed {
             background-color: #d4edda !important;
         }
-        .estado-completado {
-            color: #0b8a45;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#"><i class="fas fa-warehouse me-2"></i>Gestión de Bodega</a>
+            <a class="navbar-brand" href="#"><i class="fas fa-truck me-2"></i>Administración de Envíos</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin_dashboard.php"><i class="fas fa-tachometer-alt me-2"></i>Panel Admin</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
                     </li>
@@ -138,7 +140,9 @@ if (!$result) {
         ?>
         
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="fas fa-boxes me-2"></i>Gestión de Bodega</h2>
+            <h2><i class="fas fa-truck me-2"></i>Gestión de Envíos</h2>
+            <a href="admin_envio_agregar.php" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Registrar Nuevo Envío
             </a>
         </div>
 
@@ -146,11 +150,12 @@ if (!$result) {
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Marca</th>
-                        <th>Modelo</th>
+                        <th>ID Envío</th>
+                        <th>Usuario</th>
+                        <th>Destino</th>
                         <th>Estado</th>
+                        <th>Fecha de Salida</th>
+                        <th>Fecha de Llegada</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -158,21 +163,22 @@ if (!$result) {
                     <?php
                     if (mysqli_num_rows($result) > 0) {
                         while($row = mysqli_fetch_assoc($result)) {
-                            $rowClass = ($row['estado'] == 'Completado') ? 'completed' : '';
-                            $estadoClass = ($row['estado'] == 'Completado') ? 'estado-completado' : '';
+                            $rowClass = ($row['estado_envio'] == 'Completado') ? 'completed' : '';
+                            $estadoClass = ($row['estado_envio'] == 'Completado') ? 'estado-completado' : 'estado-proceso';
                             
                             echo "<tr class='" . $rowClass . "'>";
-                            echo "<td>" . htmlspecialchars($row['id_dispositivo']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['tipo']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['marca']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['modelo']) . "</td>";
-                            echo "<td class='" . $estadoClass . "'>" . htmlspecialchars($row['estado']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['id_envio']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['username']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['direccion_destino']) . "</td>";
+                            echo "<td class='" . $estadoClass . "'>" . htmlspecialchars($row['estado_envio']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['fecha_salida'] ?? 'Pendiente') . "</td>";
+                            echo "<td>" . htmlspecialchars($row['fecha_llegada'] ?? 'Pendiente') . "</td>";
                             echo "<td class='text-nowrap'>";
-                            echo "<a href='bodega_editar.php?id=" . htmlspecialchars($row['id_dispositivo']) . "' class='btn btn-sm btn-warning me-2'>";
+                            echo "<a href='admin_envio_editar.php?id=" . htmlspecialchars($row['id_envio']) . "' class='btn btn-sm btn-warning me-2'>";
                             echo "<i class='fas fa-edit me-1'></i>Editar</a>";
                             
-                            if($row['estado'] != 'Completado') {
-                                echo "<a href='bodega_eliminar.php?id=" . htmlspecialchars($row['id_dispositivo']) . "' class='btn btn-sm btn-success'>";
+                            if($row['estado_envio'] != 'Completado') {
+                                echo "<a href='admin_envio_completar.php?id=" . htmlspecialchars($row['id_envio']) . "' class='btn btn-sm btn-success'>";
                                 echo "<i class='fas fa-check-circle me-1'></i>Completar</a>";
                             } else {
                                 echo "<button class='btn btn-sm btn-secondary' disabled>";
@@ -183,7 +189,7 @@ if (!$result) {
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='6' class='text-center'>No hay dispositivos en la bodega</td></tr>";
+                        echo "<tr><td colspan='7' class='text-center'>No hay envíos registrados</td></tr>";
                     }
                     mysqli_free_result($result);
                     ?>
@@ -198,3 +204,4 @@ if (!$result) {
 <?php
 mysqli_close($link);
 ?>
+

@@ -133,6 +133,18 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION[
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Gestión de Envíos</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Administra todos los envíos de dispositivos.</p>
+                        <a href="admin_envios.php" class="btn btn-primary">Ir a Envíos</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-header">
                         <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Informes</h5>
                     </div>
                     <div class="card-body">
@@ -150,18 +162,6 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION[
                     <div class="card-body">
                         <p>Administra todos los reportes generados.</p>
                         <a href="admin_reportes.php" class="btn btn-primary">Ir a Reportes</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Facturas</h5>
-                    </div>
-                    <div class="card-body">
-                        <p>Gestiona todas las facturas del sistema.</p>
-                        <a href="admin_facturas.php" class="btn btn-primary">Ir a Facturas</a>
                     </div>
                 </div>
             </div>

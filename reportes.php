@@ -24,30 +24,74 @@ mysqli_stmt_execute($stmt_usuario);
 $result_usuario = mysqli_stmt_get_result($stmt_usuario);
 $usuario = mysqli_fetch_assoc($result_usuario);
 
-// Consulta para seleccionar los reportes relacionados con los dispositivos del usuario
-$sql = "SELECT r.*, d.marca, d.modelo, d.tipo_dispositivo 
-        FROM reportes r
-        INNER JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
-        WHERE d.id_usuario = ?
-        ORDER BY r.fecha_reporte DESC";
-$stmt = mysqli_prepare($link, $sql);
-mysqli_stmt_bind_param($stmt, "i", $id_usuario);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
+// Obtener los dispositivos del usuario
+$sql_dispositivos = "SELECT * FROM dispositivos WHERE id_usuario = ? ORDER BY fecha_entrega DESC";
+$stmt_dispositivos = mysqli_prepare($link, $sql_dispositivos);
+mysqli_stmt_bind_param($stmt_dispositivos, "i", $id_usuario);
+mysqli_stmt_execute($stmt_dispositivos);
+$result_dispositivos = mysqli_stmt_get_result($stmt_dispositivos);
 
 // Obtener estadísticas de mantenimiento
 $sql_stats = "SELECT 
-                COUNT(*) as total_reportes,
-                SUM(CASE WHEN estado_reporte = 'Finalizado' THEN 1 ELSE 0 END) as reportes_finalizados,
-                SUM(CASE WHEN estado_reporte = 'En Revisión' THEN 1 ELSE 0 END) as reportes_en_revision
-              FROM reportes r
-              INNER JOIN dispositivos d ON r.id_dispositivo = d.id_dispositivo
+                COUNT(*) as total_mantenimientos,
+                SUM(CASE WHEN m.estado = 'completado' THEN 1 ELSE 0 END) as mantenimientos_completados,
+                SUM(CASE WHEN m.estado = 'en_proceso' THEN 1 ELSE 0 END) as mantenimientos_en_proceso,
+                SUM(CASE WHEN m.estado = 'programado' THEN 1 ELSE 0 END) as mantenimientos_programados
+              FROM mantenimientos m
+              INNER JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
               WHERE d.id_usuario = ?";
 $stmt_stats = mysqli_prepare($link, $sql_stats);
 mysqli_stmt_bind_param($stmt_stats, "i", $id_usuario);
 mysqli_stmt_execute($stmt_stats);
 $result_stats = mysqli_stmt_get_result($stmt_stats);
 $stats = mysqli_fetch_assoc($result_stats);
+
+// Si no hay estadísticas, inicializar con valores predeterminados
+if (!$stats) {
+    $stats = [
+        'total_mantenimientos' => 0,
+        'mantenimientos_completados' => 0,
+        'mantenimientos_en_proceso' => 0,
+        'mantenimientos_programados' => 0
+    ];
+}
+
+// Obtener los mantenimientos programados para los dispositivos del usuario
+$sql_mantenimientos = "SELECT m.*, d.marca, d.modelo, d.tipo as tipo_dispositivo 
+                      FROM mantenimientos m
+                      INNER JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
+                      WHERE d.id_usuario = ?
+                      ORDER BY m.fecha_programada DESC";
+$stmt_mantenimientos = mysqli_prepare($link, $sql_mantenimientos);
+mysqli_stmt_bind_param($stmt_mantenimientos, "i", $id_usuario);
+mysqli_stmt_execute($stmt_mantenimientos);
+$result_mantenimientos = mysqli_stmt_get_result($stmt_mantenimientos);
+
+// NUEVA SECCIÓN: Obtener PQRs registrados por el usuario
+$sql_pqrs = "SELECT * FROM pqrs WHERE id_usuario = ? ORDER BY fecha_creacion DESC";
+$stmt_pqrs = mysqli_prepare($link, $sql_pqrs);
+mysqli_stmt_bind_param($stmt_pqrs, "i", $id_usuario);
+mysqli_stmt_execute($stmt_pqrs);
+$result_pqrs = mysqli_stmt_get_result($stmt_pqrs);
+
+// NUEVA SECCIÓN: Obtener formularios de contacto enviados por el usuario
+// Nota: Asumiendo que hay una relación entre contactos y usuarios por email
+$sql_contactos = "SELECT * FROM contactos WHERE email = ? ORDER BY fecha DESC";
+$stmt_contactos = mysqli_prepare($link, $sql_contactos);
+mysqli_stmt_bind_param($stmt_contactos, "s", $usuario['email']);
+mysqli_stmt_execute($stmt_contactos);
+$result_contactos = mysqli_stmt_get_result($stmt_contactos);
+
+// NUEVA SECCIÓN: Obtener dispositivos del usuario en envíos (como sustituto de bodega)
+$sql_envios = "SELECT e.*, d.marca, d.modelo, d.tipo 
+              FROM envios e
+              INNER JOIN dispositivos d ON e.usuario_id = d.id_usuario
+              WHERE e.usuario_id = ? AND e.estado_envio = 'En Proceso'
+              ORDER BY e.fecha_envio DESC";
+$stmt_envios = mysqli_prepare($link, $sql_envios);
+mysqli_stmt_bind_param($stmt_envios, "i", $id_usuario);
+mysqli_stmt_execute($stmt_envios);
+$result_envios = mysqli_stmt_get_result($stmt_envios);
 ?>
 
 <!DOCTYPE html>
@@ -87,6 +131,20 @@ $stats = mysqli_fetch_assoc($result_stats);
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+        .stats-card {
+            text-align: center;
+            padding: 15px;
+        }
+        .stats-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #667eea;
+        }
+        .stats-card .label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -113,6 +171,7 @@ $stats = mysqli_fetch_assoc($result_stats);
         <h2 class="mb-4">Mis Reportes de Dispositivos</h2>
         
         <div class="row">
+            <!-- Información Personal -->
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
@@ -125,26 +184,93 @@ $stats = mysqli_fetch_assoc($result_stats);
                     </div>
                 </div>
             </div>
+            
+            <!-- Estadísticas de Mantenimiento -->
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
                         <h5 class="mb-0">Estadísticas de Mantenimiento</h5>
                     </div>
                     <div class="card-body">
-                        <p><strong>Total de reportes:</strong> <?php echo $stats['total_reportes']; ?></p>
-                        <p><strong>Reportes finalizados:</strong> <?php echo $stats['reportes_finalizados']; ?></p>
-                        <p><strong>Reportes en revisión:</strong> <?php echo $stats['reportes_en_revision']; ?></p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="stats-card">
+                                    <div class="number"><?php echo $stats['total_mantenimientos']; ?></div>
+                                    <div class="label">Total mantenimientos</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="stats-card">
+                                    <div class="number"><?php echo $stats['mantenimientos_completados']; ?></div>
+                                    <div class="label">Completados</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="stats-card">
+                                    <div class="number"><?php echo $stats['mantenimientos_en_proceso']; ?></div>
+                                    <div class="label">En proceso</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="stats-card">
+                                    <div class="number"><?php echo $stats['mantenimientos_programados']; ?></div>
+                                    <div class="label">Programados</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Mis Dispositivos -->
         <div class="card mt-4">
             <div class="card-header">
-                <h5 class="mb-0">Listado de Reportes</h5>
+                <h5 class="mb-0">Mis Dispositivos</h5>
             </div>
             <div class="card-body">
-                <?php if (mysqli_num_rows($result) > 0): ?>
+                <?php if (mysqli_num_rows($result_dispositivos) > 0): ?>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Marca</th>
+                                    <th>Modelo</th>
+                                    <th>Fecha de Entrega</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($row = mysqli_fetch_assoc($result_dispositivos)): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($row['tipo']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['marca']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['modelo']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['fecha_entrega']); ?></td>
+                                        <td>
+                                            <span class="badge bg-<?php echo $row['estado'] == 'Activo' ? 'success' : 'warning'; ?>">
+                                                <?php echo htmlspecialchars($row['estado']); ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <p class="alert alert-info">No tienes dispositivos registrados.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Mantenimientos Programados -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Mantenimientos Programados</h5>
+            </div>
+            <div class="card-body">
+                <?php if (mysqli_num_rows($result_mantenimientos) > 0): ?>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
@@ -152,25 +278,43 @@ $stats = mysqli_fetch_assoc($result_stats);
                                     <th>Dispositivo</th>
                                     <th>Tipo</th>
                                     <th>Descripción</th>
-                                    <th>Fecha de Reporte</th>
+                                    <th>Fecha Programada</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                                <?php while ($row = mysqli_fetch_assoc($result_mantenimientos)): ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($row['marca'] . ' ' . $row['modelo']); ?></td>
                                         <td><?php echo htmlspecialchars($row['tipo_dispositivo']); ?></td>
-                                        <td><?php echo htmlspecialchars(substr($row['descripcion'], 0, 50)) . '...'; ?></td>
-                                        <td><?php echo htmlspecialchars($row['fecha_reporte']); ?></td>
+                                        <td><?php echo htmlspecialchars(substr($row['descripcion'], 0, 50)) . (strlen($row['descripcion']) > 50 ? '...' : ''); ?></td>
+                                        <td><?php echo htmlspecialchars($row['fecha_programada']); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php echo $row['estado_reporte'] == 'Finalizado' ? 'success' : 'warning'; ?>">
-                                                <?php echo htmlspecialchars($row['estado_reporte']); ?>
+                                            <span class="badge bg-<?php 
+                                                if ($row['estado'] == 'completado') {
+                                                    echo 'success';
+                                                } elseif ($row['estado'] == 'en_proceso') {
+                                                    echo 'warning';
+                                                } else {
+                                                    echo 'info';
+                                                }
+                                            ?>">
+                                                <?php 
+                                                if ($row['estado'] == 'completado') {
+                                                    echo 'Completado';
+                                                } elseif ($row['estado'] == 'en_proceso') {
+                                                    echo 'En proceso';
+                                                } elseif ($row['estado'] == 'programado') {
+                                                    echo 'Programado';
+                                                } else {
+                                                    echo htmlspecialchars($row['estado']);
+                                                }
+                                                ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <a href="ver_reporte.php?id=<?php echo $row['id_reporte']; ?>" class="btn btn-primary btn-sm">
+                                            <a href="ver_mantenimiento.php?id=<?php echo $row['id']; ?>" class="btn btn-primary btn-sm">
                                                 <i class="fas fa-eye me-1"></i>Ver
                                             </a>
                                         </td>
@@ -180,11 +324,163 @@ $stats = mysqli_fetch_assoc($result_stats);
                         </table>
                     </div>
                 <?php else: ?>
-                    <p class="alert alert-info">No hay reportes disponibles.</p>
+                    <p class="alert alert-info">No hay mantenimientos programados.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- NUEVA SECCIÓN: PQRs Registrados -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">PQRs Registrados</h5>
+            </div>
+            <div class="card-body">
+                <?php if (mysqli_num_rows($result_pqrs) > 0): ?>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tipo</th>
+                                    <th>Descripción</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($row = mysqli_fetch_assoc($result_pqrs)): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($row['id']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['tipo']); ?></td>
+                                        <td><?php echo htmlspecialchars(substr($row['descripcion'], 0, 50)) . (strlen($row['descripcion']) > 50 ? '...' : ''); ?></td>
+                                        <td><?php echo htmlspecialchars($row['fecha_creacion']); ?></td>
+                                        <td>
+                                            <span class="badge bg-<?php 
+                                                if ($row['estado'] == 'resuelto') {
+                                                    echo 'success';
+                                                } elseif ($row['estado'] == 'en_proceso') {
+                                                    echo 'warning';
+                                                } else {
+                                                    echo 'info';
+                                                }
+                                            ?>">
+                                                <?php echo htmlspecialchars($row['estado'] ? $row['estado'] : 'Pendiente'); ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <p class="alert alert-info">No has registrado PQRs.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- NUEVA SECCIÓN: Formularios de Contacto -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Formularios de Contacto Enviados</h5>
+            </div>
+            <div class="card-body">
+                <?php if (mysqli_num_rows($result_contactos) > 0): ?>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Asunto</th>
+                                    <th>Mensaje</th>
+                                    <th>Fecha de Envío</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($row = mysqli_fetch_assoc($result_contactos)): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($row['id']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['asunto']); ?></td>
+                                        <td><?php echo htmlspecialchars(substr($row['mensaje'], 0, 50)) . (strlen($row['mensaje']) > 50 ? '...' : ''); ?></td>
+                                        <td><?php echo htmlspecialchars($row['fecha']); ?></td>
+                                        <td>
+                                            <span class="badge bg-<?php 
+                                                if ($row['estado'] == 'Resuelto') {
+                                                    echo 'success';
+                                                } elseif ($row['estado'] == 'En proceso') {
+                                                    echo 'warning';
+                                                } else {
+                                                    echo 'info';
+                                                }
+                                            ?>">
+                                                <?php echo htmlspecialchars($row['estado']); ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <p class="alert alert-info">No has enviado formularios de contacto.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- NUEVA SECCIÓN: Dispositivos en Envío (sustituto de bodega) -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Mis Dispositivos en Bodega</h5>
+            </div>
+            <div class="card-body">
+                <?php if (mysqli_num_rows($result_envios) > 0): ?>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID Envío</th>
+                                    <th>Destino</th>
+                                    <th>Fecha de Envío</th>
+                                    <th>Fecha de Salida</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($row = mysqli_fetch_assoc($result_envios)): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($row['id_envio']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['direccion_destino']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['fecha_envio']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['fecha_salida']); ?></td>
+                                        <td>
+                                            <span class="badge bg-<?php echo $row['estado_envio'] == 'Completado' ? 'success' : 'warning'; ?>">
+                                                <?php echo htmlspecialchars($row['estado_envio']); ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <p class="alert alert-info">No tienes dispositivos en Bodega.</p>
                 <?php endif; ?>
             </div>
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+<?php
+// Cerrar todas las declaraciones y la conexión
+mysqli_stmt_close($stmt_usuario);
+mysqli_stmt_close($stmt_dispositivos);
+mysqli_stmt_close($stmt_stats);
+mysqli_stmt_close($stmt_mantenimientos);
+mysqli_stmt_close($stmt_pqrs);
+mysqli_stmt_close($stmt_contactos);
+mysqli_stmt_close($stmt_envios);
+mysqli_close($link);
+?>

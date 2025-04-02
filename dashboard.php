@@ -209,6 +209,11 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="mantenimientos.php">
+                    <i class="fas fa-tools"></i> Mantenimientos
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" href="informes.php">
                     <i class="fas fa-chart-bar"></i> Informes
                 </a>
@@ -216,11 +221,6 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
             <li class="nav-item">
                 <a class="nav-link" href="reportes.php">
                     <i class="fas fa-file-alt"></i> Reportes
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="facturas.php">
-                    <i class="fas fa-file-invoice"></i> Facturas
                 </a>
             </li>
         </ul>
@@ -316,6 +316,17 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
                             <i class="fas fa-sync-alt feature-icon"></i>
                             <h5 class="card-title">Gestión Simplificada</h5>
                             <p class="card-text">Administra todos tus dispositivos desde una única plataforma intuitiva y fácil de usar.</p>
+                            <a href="dispositivos.php?tipo=computadora" class="btn btn-primary mt-3">Ver Dispositivos</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-tools feature-icon"></i>
+                            <h5 class="card-title">Mantenimientos</h5>
+                            <p class="card-text">Programa y gestiona mantenimientos para tus dispositivos de forma sencilla.</p>
+                            <a href="mantenimientos.php" class="btn btn-primary mt-3">Ver Mantenimientos</a>
                         </div>
                     </div>
                 </div>
@@ -325,15 +336,7 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
                             <i class="fas fa-chart-line feature-icon"></i>
                             <h5 class="card-title">Informes Detallados</h5>
                             <p class="card-text">Accede a informes y estadísticas detalladas sobre el estado y rendimiento de tus dispositivos.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card feature-card">
-                        <div class="card-body text-center">
-                            <i class="fas fa-shield-alt feature-icon"></i>
-                            <h5 class="card-title">Seguridad Garantizada</h5>
-                            <p class="card-text">Tus datos están protegidos con los más altos estándares de seguridad y privacidad.</p>
+                            <a href="informes.php" class="btn btn-primary mt-3">Ver Informes</a>
                         </div>
                     </div>
                 </div>

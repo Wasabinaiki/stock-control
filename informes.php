@@ -31,21 +31,29 @@ mysqli_stmt_bind_param($stmt_dispositivos, "i", $id_usuario);
 mysqli_stmt_execute($stmt_dispositivos);
 $result_dispositivos = mysqli_stmt_get_result($stmt_dispositivos);
 
-// Obtener mantenimientos programados del usuario
-$sql_mantenimientos = "SELECT m.* FROM mantenimientos m 
+// Contar tipos de dispositivos para el nuevo gráfico
+$sql_tipos = "SELECT tipo, COUNT(*) as total FROM dispositivos WHERE id_usuario = ? GROUP BY tipo";
+$stmt_tipos = mysqli_prepare($link, $sql_tipos);
+mysqli_stmt_bind_param($stmt_tipos, "i", $id_usuario);
+mysqli_stmt_execute($stmt_tipos);
+$result_tipos = mysqli_stmt_get_result($stmt_tipos);
+$tipos_labels = [];
+$tipos_data = [];
+while ($row = mysqli_fetch_assoc($result_tipos)) {
+    $tipos_labels[] = $row['tipo'];
+    $tipos_data[] = $row['total'];
+}
+
+// Obtener mantenimientos del usuario
+$sql_mantenimientos = "SELECT m.*, d.tipo, d.marca, d.modelo 
+                       FROM mantenimientos m 
                        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo 
-                       WHERE d.id_usuario = ? AND m.estado != 'completado'";
+                       WHERE d.id_usuario = ? 
+                       ORDER BY m.fecha_programada DESC";
 $stmt_mantenimientos = mysqli_prepare($link, $sql_mantenimientos);
 mysqli_stmt_bind_param($stmt_mantenimientos, "i", $id_usuario);
 mysqli_stmt_execute($stmt_mantenimientos);
 $result_mantenimientos = mysqli_stmt_get_result($stmt_mantenimientos);
-
-// Obtener informes del usuario
-$sql_informes = "SELECT * FROM informes WHERE id_usuario = ? ORDER BY fecha_creacion DESC";
-$stmt_informes = mysqli_prepare($link, $sql_informes);
-mysqli_stmt_bind_param($stmt_informes, "i", $id_usuario);
-mysqli_stmt_execute($stmt_informes);
-$result_informes = mysqli_stmt_get_result($stmt_informes);
 ?>
 
 <!DOCTYPE html>
@@ -56,6 +64,8 @@ $result_informes = mysqli_stmt_get_result($stmt_informes);
     <title>Mis Informes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -79,11 +89,58 @@ $result_informes = mysqli_stmt_get_result($stmt_informes);
             border-radius: 10px 10px 0 0 !important;
         }
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg,rgb(234, 102, 102) 0%, #764ba2 100%);
             border: none;
         }
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+        .estado-programado {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .estado-en_proceso {
+            color: #0d6efd;
+            font-weight: bold;
+        }
+        .estado-completado {
+            color: #198754;
+            font-weight: bold;
+        }
+        .nav-tabs .nav-link {
+            color: #000000 !important; /* Cambiado a negro */
+            font-weight: 500;
+        }
+        .nav-tabs .nav-link.active {
+            color: #000000 !important; /* Cambiado a negro */
+            font-weight: bold;
+            border-color: #667eea #667eea #fff;
+        }
+        /* Cambiamos el color del texto en los encabezados de tabla */
+        .table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333 !important; /* Cambiado a gris oscuro */
+            border: none;
+            font-weight: bold;
+        }
+        .refresh-btn {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .refresh-btn:hover {
+            transform: rotate(180deg);
+        }
+        /* Aseguramos que los íconos en las pestañas sean visibles */
+        .nav-tabs .nav-link i {
+            color: #000000 !important; /* Cambiado a negro */
+        }
+        .nav-tabs .nav-link.active i {
+            color: #000000 !important; /* Cambiado a negro */
         }
     </style>
 </head>
@@ -100,6 +157,9 @@ $result_informes = mysqli_stmt_get_result($stmt_informes);
                         <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="mantenimientos.php"><i class="fas fa-tools me-2"></i>Mantenimientos</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a>
                     </li>
                 </ul>
@@ -108,98 +168,305 @@ $result_informes = mysqli_stmt_get_result($stmt_informes);
     </nav>
 
     <div class="container mt-4">
-        <h2 class="mb-4">Mis Informes</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-chart-line me-2"></i>Mis Informes</h2>
+            <span class="refresh-btn" id="refreshData" title="Actualizar datos">
+                <i class="fas fa-sync-alt fa-2x text-primary"></i>
+            </span>
+        </div>
         
         <div class="row">
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Información Personal</h5>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Tipos de Dispositivos</h5>
                     </div>
                     <div class="card-body">
-                        <p><strong>Nombre:</strong> <?php echo htmlspecialchars($usuario['nombre'] . ' ' . $usuario['apellido']); ?></p>
-                        <p><strong>Email:</strong> <?php echo htmlspecialchars($usuario['email']); ?></p>
-                        <p><strong>Teléfono:</strong> <?php echo htmlspecialchars($usuario['telefono']); ?></p>
-                        <p><strong>Área:</strong> <?php echo htmlspecialchars($usuario['area']); ?></p>
+                        <div class="chart-container">
+                            <canvas id="tiposDispositivos"></canvas>
+                        </div>
+                        <div class="mt-3">
+                            <p class="text-muted small">
+                                <strong>Nota:</strong> Este gráfico muestra la distribución de tus dispositivos por tipo.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">Mis Dispositivos</h5>
+                        <h5 class="mb-0">Resumen de Mantenimientos</h5>
                     </div>
                     <div class="card-body">
-                        <?php if (mysqli_num_rows($result_dispositivos) > 0): ?>
-                            <ul>
-                                <?php while ($dispositivo = mysqli_fetch_assoc($result_dispositivos)): ?>
-                                    <li><?php echo htmlspecialchars($dispositivo['tipo'] . ' - ' . $dispositivo['marca'] . ' ' . $dispositivo['modelo']); ?></li>
-                                <?php endwhile; ?>
-                            </ul>
-                        <?php else: ?>
-                            <p>No tienes dispositivos registrados.</p>
-                        <?php endif; ?>
+                        <div class="chart-container">
+                            <canvas id="mantenimientosChart"></canvas>
+                        </div>
+                        <div class="mt-3">
+                            <p class="text-muted small">
+                                <strong>Nota:</strong> Este gráfico muestra el estado de los mantenimientos de tus dispositivos.
+                                <ul class="small">
+                                    <li><span class="estado-programado">Programado</span>: Mantenimiento agendado</li>
+                                    <li><span class="estado-en_proceso">En Proceso</span>: Mantenimiento en ejecución</li>
+                                    <li><span class="estado-completado">Completado</span>: Mantenimiento finalizado</li>
+                                </ul>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">Mantenimientos Programados</h5>
-            </div>
-            <div class="card-body">
-                <?php if (mysqli_num_rows($result_mantenimientos) > 0): ?>
-                    <ul>
-                        <?php while ($mantenimiento = mysqli_fetch_assoc($result_mantenimientos)): ?>
-                            <li>
-                                <?php echo htmlspecialchars($mantenimiento['descripcion']); ?> - 
-                                Fecha: <?php echo htmlspecialchars($mantenimiento['fecha_programada']); ?> - 
-                                Estado: <?php echo htmlspecialchars($mantenimiento['estado']); ?>
-                            </li>
-                        <?php endwhile; ?>
-                    </ul>
-                <?php else: ?>
-                    <p>No tienes mantenimientos programados pendientes.</p>
-                <?php endif; ?>
-            </div>
-        </div>
-
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">Mis Informes</h5>
-            </div>
-            <div class="card-body">
-                <?php if (mysqli_num_rows($result_informes) > 0): ?>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Título</th>
-                                    <th>Fecha de Creación</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php while ($informe = mysqli_fetch_assoc($result_informes)): ?>
+        <ul class="nav nav-tabs mt-4" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="dispositivos-tab" data-bs-toggle="tab" data-bs-target="#dispositivos" type="button" role="tab" aria-controls="dispositivos" aria-selected="true">
+                    <i class="fas fa-laptop me-2"></i>Mis Dispositivos
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="mantenimientos-tab" data-bs-toggle="tab" data-bs-target="#mantenimientos" type="button" role="tab" aria-controls="mantenimientos" aria-selected="false">
+                    <i class="fas fa-tools me-2"></i>Historial de Mantenimientos
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="dispositivos" role="tabpanel" aria-labelledby="dispositivos-tab">
+                <div class="card border-top-0 rounded-0 rounded-bottom">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="dispositivosTable">
+                                <thead>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($informe['titulo']); ?></td>
-                                        <td><?php echo htmlspecialchars($informe['fecha_creacion']); ?></td>
-                                        <td>
-                                            <a href="ver_informe.php?id=<?php echo $informe['id']; ?>" class="btn btn-primary btn-sm">Ver</a>
-                                        </td>
+                                        <th>Tipo</th>
+                                        <th>Marca</th>
+                                        <th>Modelo</th>
+                                        <th>Fecha Entrega</th>
+                                        <th>Última Actualización</th>
                                     </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    mysqli_data_seek($result_dispositivos, 0);
+                                    if (mysqli_num_rows($result_dispositivos) > 0) {
+                                        while ($dispositivo = mysqli_fetch_assoc($result_dispositivos)) {
+                                            echo "<tr>";
+                                            echo "<td>" . htmlspecialchars($dispositivo['tipo']) . "</td>";
+                                            echo "<td>" . htmlspecialchars($dispositivo['marca']) . "</td>";
+                                            echo "<td>" . htmlspecialchars($dispositivo['modelo']) . "</td>";
+                                            echo "<td>" . htmlspecialchars($dispositivo['fecha_entrega']) . "</td>";
+                                            echo "<td>" . date('Y-m-d', strtotime($dispositivo['fecha_entrega'])) . "</td>";
+                                            echo "</tr>";
+                                        }
+                                    } else {
+                                        echo "<tr><td colspan='5' class='text-center'>No tienes dispositivos registrados.</td></tr>";
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                <?php else: ?>
-                    <p>No tienes informes disponibles.</p>
-                <?php endif; ?>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="mantenimientos" role="tabpanel" aria-labelledby="mantenimientos-tab">
+                <div class="card border-top-0 rounded-0 rounded-bottom">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="filtroEstado" class="form-label">Filtrar por estado:</label>
+                            <select class="form-select" id="filtroEstado">
+                                <option value="">Todos</option>
+                                <option value="programado">Programado</option>
+                                <option value="en_proceso">En Proceso</option>
+                                <option value="completado">Completado</option>
+                            </select>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="mantenimientosTable">
+                                <thead>
+                                    <tr>
+                                        <th>Dispositivo</th>
+                                        <th>Descripción</th>
+                                        <th>Fecha Programada</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    if (mysqli_num_rows($result_mantenimientos) > 0) {
+                                        while ($mantenimiento = mysqli_fetch_assoc($result_mantenimientos)) {
+                                            echo "<tr class='fila-mantenimiento' data-estado='" . $mantenimiento['estado'] . "'>";
+                                            echo "<td>" . htmlspecialchars($mantenimiento['tipo'] . ' ' . $mantenimiento['marca'] . ' ' . $mantenimiento['modelo']) . "</td>";
+                                            echo "<td>" . htmlspecialchars($mantenimiento['descripcion']) . "</td>";
+                                            echo "<td>" . htmlspecialchars($mantenimiento['fecha_programada']) . "</td>";
+                                            echo "<td><span class='estado-" . $mantenimiento['estado'] . "'>" . htmlspecialchars($mantenimiento['estado']) . "</span></td>";
+                                            echo "</tr>";
+                                        }
+                                    } else {
+                                        echo "<tr><td colspan='4' class='text-center'>No tienes mantenimientos registrados.</td></tr>";
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Nuevo gráfico de tipos de dispositivos
+        const ctxTipos = document.getElementById('tiposDispositivos').getContext('2d');
+        const tiposChart = new Chart(ctxTipos, {
+            type: 'pie',
+            data: {
+                labels: <?php echo json_encode($tipos_labels); ?>,
+                datasets: [{
+                    data: <?php echo json_encode($tipos_data); ?>,
+                    backgroundColor: [
+                        '#004dff',
+                        '#ff006c',
+                        '#b7f83c',
+                        '#f742ee',
+                        '#283bb3',
+                        '#20c997',
+                        '#fd7e14'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Distribución por Tipo'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de mantenimientos
+        const ctxMantenimientos = document.getElementById('mantenimientosChart').getContext('2d');
+        
+        // Contar mantenimientos por estado
+        let programados = 0;
+        let enProceso = 0;
+        let completados = 0;
+        
+        document.querySelectorAll('.fila-mantenimiento').forEach(fila => {
+            const estado = fila.getAttribute('data-estado');
+            if (estado === 'programado') programados++;
+            else if (estado === 'en_proceso') enProceso++;
+            else if (estado === 'completado') completados++;
+        });
+        
+        const mantenimientosChart = new Chart(ctxMantenimientos, {
+            type: 'bar',
+            data: {
+                labels: ['Programados', 'En Proceso', 'Completados'],
+                datasets: [{
+                    label: 'Cantidad',
+                    data: [programados, enProceso, completados],
+                    backgroundColor: [
+                        '#ffc107',
+                        '#0d6efd',
+                        '#198754'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Mantenimientos por Estado'
+                    }
+                }
+            }
+        });
+
+        // Filtro de mantenimientos
+        document.getElementById('filtroEstado').addEventListener('change', function() {
+            const filtro = this.value;
+            const filas = document.querySelectorAll('.fila-mantenimiento');
+            
+            filas.forEach(fila => {
+                if (filtro === '' || fila.getAttribute('data-estado') === filtro) {
+                    fila.style.display = '';
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+        });
+
+        // Actualización en tiempo real
+        document.getElementById('refreshData').addEventListener('click', function() {
+            this.classList.add('fa-spin');
+            
+            // Simular actualización con AJAX
+            setTimeout(() => {
+                // En producción, aquí iría una llamada AJAX real
+                $.ajax({
+                    url: 'get_informes_data.php',
+                    type: 'GET',
+                    data: { user_id: <?php echo $id_usuario; ?> },
+                    success: function(response) {
+                        // Actualizar los datos con la respuesta
+                        // En este ejemplo solo detenemos la animación
+                        document.getElementById('refreshData').classList.remove('fa-spin');
+                        
+                        // Mostrar notificación de actualización
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                        alertDiv.innerHTML = `
+                            <i class="fas fa-check-circle me-2"></i>Datos actualizados correctamente.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+                    },
+                    error: function() {
+                        document.getElementById('refreshData').classList.remove('fa-spin');
+                        
+                        // Mostrar error
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                        alertDiv.innerHTML = `
+                            <i class="fas fa-exclamation-circle me-2"></i>Error al actualizar los datos.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+                    }
+                });
+            }, 1000);
+        });
+    </script>
 </body>
 </html>

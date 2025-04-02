@@ -8,46 +8,61 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     exit;
 }
 
-// Verificar si id_usuario está definido en la sesión
-if (!isset($_SESSION["id"])) {
-    header("location: error.php?mensaje=Sesión inválida");
-    exit;
-}
+$usuario_id = $_SESSION["id"];
+$mensaje = "";
+$error = "";
 
-$id_usuario = $_SESSION["id"];
+// Obtener los dispositivos del usuario para el dropdown
+$sql_dispositivos = "SELECT id_dispositivo, tipo, marca, modelo FROM dispositivos WHERE id_usuario = ?";
+$stmt_dispositivos = mysqli_prepare($link, $sql_dispositivos);
+mysqli_stmt_bind_param($stmt_dispositivos, "i", $usuario_id);
+mysqli_stmt_execute($stmt_dispositivos);
+$result_dispositivos = mysqli_stmt_get_result($stmt_dispositivos);
 
-// Procesar el formulario cuando se envía
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $fecha = $_POST['fecha'];
-    $descripcion = $_POST['descripcion'];
-    $id_dispositivo = $_POST['id_dispositivo'];
+    // Recoger datos del formulario
+    $id_dispositivo = $_POST["id_dispositivo"];
+    $descripcion = $_POST["descripcion"];
+    $fecha_programada = $_POST["fecha_programada"];
+    $direccion_recogida = $_POST["direccion_recogida"];
     
-    // Insertar el nuevo mantenimiento en la base de datos
-    $sql = "INSERT INTO mantenimientos (id_dispositivo, fecha_programada, descripcion, estado) VALUES (?, ?, ?, 'programado')";
+    // Insertar en la tabla de mantenimientos
+    $sql_mantenimiento = "INSERT INTO mantenimientos (id_dispositivo, fecha_programada, descripcion, estado) 
+                         VALUES (?, ?, ?, 'programado')";
     
-    if($stmt = mysqli_prepare($link, $sql)){
-        mysqli_stmt_bind_param($stmt, "iss", $id_dispositivo, $fecha, $descripcion);
+    if ($stmt = mysqli_prepare($link, $sql_mantenimiento)) {
+        mysqli_stmt_bind_param($stmt, "iss", $id_dispositivo, $fecha_programada, $descripcion);
         
-        if(mysqli_stmt_execute($stmt)){
-            $id_mantenimiento = mysqli_insert_id($link);
-            header("Location: pagar_mantenimiento.php?id=" . $id_mantenimiento);
-            exit();
-        } else{
-            $error_message = "Ocurrió un error al programar el mantenimiento: " . mysqli_error($link);
+        if (mysqli_stmt_execute($stmt)) {
+            $mantenimiento_id = mysqli_insert_id($link);
+            
+            // Insertar en la tabla de envíos
+            $sql_envio = "INSERT INTO envios (usuario_id, direccion_destino, estado_envio, fecha_envio, fecha_salida) 
+                         VALUES (?, ?, 'En Proceso', CURDATE(), CURDATE())";
+            
+            if ($stmt_envio = mysqli_prepare($link, $sql_envio)) {
+                $direccion_destino = "Bodega Central"; // Dirección predeterminada de la bodega
+                mysqli_stmt_bind_param($stmt_envio, "is", $usuario_id, $direccion_destino);
+                
+                if (mysqli_stmt_execute($stmt_envio)) {
+                    $mensaje = "Mantenimiento programado con éxito. Se ha registrado el envío correspondiente.";
+                } else {
+                    $error = "Error al registrar el envío: " . mysqli_error($link);
+                }
+                
+                mysqli_stmt_close($stmt_envio);
+            } else {
+                $error = "Error al preparar la consulta de envío: " . mysqli_error($link);
+            }
+        } else {
+            $error = "Error al programar el mantenimiento: " . mysqli_error($link);
         }
         
         mysqli_stmt_close($stmt);
     } else {
-        $error_message = "Error en la preparación de la consulta: " . mysqli_error($link);
+        $error = "Error al preparar la consulta: " . mysqli_error($link);
     }
 }
-
-// Obtener la lista de dispositivos del usuario
-$sql_dispositivos = "SELECT id_dispositivo, tipo, marca, modelo FROM dispositivos WHERE id_usuario = ?";
-$stmt_dispositivos = mysqli_prepare($link, $sql_dispositivos);
-mysqli_stmt_bind_param($stmt_dispositivos, "i", $id_usuario);
-mysqli_stmt_execute($stmt_dispositivos);
-$result_dispositivos = mysqli_stmt_get_result($stmt_dispositivos);
 ?>
 
 <!DOCTYPE html>
@@ -68,15 +83,27 @@ $result_dispositivos = mysqli_stmt_get_result($stmt_dispositivos);
         .navbar-brand, .nav-link {
             color: white !important;
         }
+        .container {
+            max-width: 800px;
+            margin-top: 30px;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0 !important;
+        }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
         }
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        }
-        .container {
-            max-width: 600px;
         }
     </style>
 </head>
@@ -93,9 +120,6 @@ $result_dispositivos = mysqli_stmt_get_result($stmt_dispositivos);
                         <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="mantenimientos.php"><i class="fas fa-calendar-check me-2"></i>Mantenimientos</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a>
                     </li>
                 </ul>
@@ -103,41 +127,59 @@ $result_dispositivos = mysqli_stmt_get_result($stmt_dispositivos);
         </div>
     </nav>
 
-    <div class="container mt-5">
-        <h2 class="mb-4">Programar Mantenimiento</h2>
+    <div class="container">
+        <?php if(!empty($mensaje)): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i><?php echo $mensaje; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+        
+        <?php if(!empty($error)): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i><?php echo $error; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
 
-        <?php
-        if (isset($error_message)) {
-            echo "<div class='alert alert-danger'>" . $error_message . "</div>";
-        }
-        ?>
-
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-            <div class="mb-3">
-                <label for="id_dispositivo" class="form-label">Dispositivo</label>
-                <select class="form-select" id="id_dispositivo" name="id_dispositivo" required>
-                    <option value="">Seleccione un dispositivo</option>
-                    <?php while ($row = mysqli_fetch_assoc($result_dispositivos)): ?>
-                        <option value="<?php echo $row['id_dispositivo']; ?>">
-                            <?php echo htmlspecialchars($row['tipo'] . ' - ' . $row['marca'] . ' ' . $row['modelo']); ?>
-                        </option>
-                    <?php endwhile; ?>
-                </select>
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-calendar-plus me-2"></i>Programar Mantenimiento</h4>
             </div>
-            <div class="mb-3">
-                <label for="fecha" class="form-label">Fecha de Mantenimiento</label>
-                <input type="date" class="form-control" id="fecha" name="fecha" required>
+            <div class="card-body">
+                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                    <div class="mb-3">
+                        <label for="id_dispositivo" class="form-label">Seleccione un Dispositivo</label>
+                        <select class="form-select" id="id_dispositivo" name="id_dispositivo" required>
+                            <option value="">Seleccione un dispositivo</option>
+                            <?php while($row = mysqli_fetch_assoc($result_dispositivos)): ?>
+                                <option value="<?php echo $row['id_dispositivo']; ?>">
+                                    <?php echo htmlspecialchars($row['tipo'] . ' - ' . $row['marca'] . ' ' . $row['modelo']); ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción del Problema</label>
+                        <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fecha_programada" class="form-label">Fecha Programada</label>
+                        <input type="date" class="form-control" id="fecha_programada" name="fecha_programada" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="direccion_recogida" class="form-label">Dirección de Recogida</label>
+                        <input type="text" class="form-control" id="direccion_recogida" name="direccion_recogida" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Programar Mantenimiento</button>
+                </form>
             </div>
-            <div class="mb-3">
-                <label for="descripcion" class="form-label">Descripción</label>
-                <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-calendar-plus me-2"></i>Programar Mantenimiento
-            </button>
-        </form>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+<?php
+mysqli_close($link);
+?>

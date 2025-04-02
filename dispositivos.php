@@ -14,11 +14,18 @@ if(empty($tipo)) {
     exit;
 }
 
-// Agregar esto al principio del archivo, después de session_start();
+// Mensajes de éxito y error
 $success_message = '';
+$error_message = '';
+
 if (isset($_SESSION['success_message'])) {
     $success_message = $_SESSION['success_message'];
     unset($_SESSION['success_message']);
+}
+
+if (isset($_SESSION['error_message'])) {
+    $error_message = $_SESSION['error_message'];
+    unset($_SESSION['error_message']);
 }
 
 $sql = "SELECT id_dispositivo, marca, modelo, fecha_entrega, licencias, procesador, almacenamiento, ram, serial FROM dispositivos WHERE tipo = ? AND id_usuario = ?";
@@ -91,6 +98,27 @@ if($stmt = mysqli_prepare($link, $sql)){
         .device-info strong {
             color: #764ba2;
         }
+        .btn-success {
+            background: linear-gradient(135deg, #20bf6b 0%, #0b8a45 100%);
+            border: none;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #0b8a45 0%, #20bf6b 100%);
+        }
+        /* Estilos para el modal de confirmación */
+        .modal-content {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+        .modal-footer {
+            border-top: none;
+        }
     </style>
 </head>
 <body>
@@ -117,9 +145,18 @@ if($stmt = mysqli_prepare($link, $sql)){
 
     <div class="container mt-5">
         <?php
+        // Mostrar mensaje de éxito
         if (!empty($success_message)) {
             echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
             echo '<i class="fas fa-check-circle me-2"></i>' . htmlspecialchars($success_message);
+            echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+            echo '</div>';
+        }
+        
+        // Mostrar mensaje de error
+        if (!empty($error_message)) {
+            echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
+            echo '<i class="fas fa-exclamation-circle me-2"></i>' . htmlspecialchars($error_message);
             echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
             echo '</div>';
         }
@@ -144,10 +181,32 @@ if($stmt = mysqli_prepare($link, $sql)){
                 echo "<div class='device-info'><strong><i class='fas fa-barcode me-2'></i>Serial:</strong> " . htmlspecialchars($row['serial']) . "</div>";
                 echo "<div class='d-flex justify-content-between mt-4'>";
                 echo "<a href='editar_dispositivo.php?id=" . $row['id_dispositivo'] . "&tipo=" . $tipo . "' class='btn btn-primary'><i class='fas fa-edit me-2'></i>Editar</a>";
+                echo "<button type='button' class='btn btn-danger' data-bs-toggle='modal' data-bs-target='#deleteModal" . $row['id_dispositivo'] . "'>";
+                echo "<i class='fas fa-trash-alt me-2'></i>Eliminar</button>";
+                echo "</div>";
+                echo "</div>";
+                echo "</div>";
+                
+                // Modal de confirmación para eliminar
+                echo "<div class='modal fade' id='deleteModal" . $row['id_dispositivo'] . "' tabindex='-1' aria-labelledby='deleteModalLabel" . $row['id_dispositivo'] . "' aria-hidden='true'>";
+                echo "<div class='modal-dialog'>";
+                echo "<div class='modal-content'>";
+                echo "<div class='modal-header'>";
+                echo "<h5 class='modal-title' id='deleteModalLabel" . $row['id_dispositivo'] . "'><i class='fas fa-exclamation-triangle me-2'></i>Confirmar eliminación</h5>";
+                echo "<button type='button' class='btn-close btn-close-white' data-bs-dismiss='modal' aria-label='Close'></button>";
+                echo "</div>";
+                echo "<div class='modal-body'>";
+                echo "<p>¿Estás seguro de que deseas eliminar este dispositivo? Esta acción no se puede deshacer.</p>";
+                echo "<p><strong>Dispositivo:</strong> " . htmlspecialchars($row['marca']) . " " . htmlspecialchars($row['modelo']) . "</p>";
+                echo "</div>";
+                echo "<div class='modal-footer'>";
+                echo "<button type='button' class='btn btn-secondary' data-bs-dismiss='modal'><i class='fas fa-times me-2'></i>Cancelar</button>";
                 echo "<a href='eliminar_dispositivo.php?id=" . $row['id_dispositivo'] . "&tipo=" . $tipo . "' class='btn btn-danger'><i class='fas fa-trash-alt me-2'></i>Eliminar</a>";
                 echo "</div>";
                 echo "</div>";
                 echo "</div>";
+                echo "</div>";
+                
                 echo "</div>";
             }
         } else {

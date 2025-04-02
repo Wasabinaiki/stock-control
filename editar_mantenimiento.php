@@ -164,9 +164,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     <div class="mb-3">
                         <label for="estado" class="form-label">Estado</label>
                         <select class="form-select" id="estado" name="estado">
-                            <option value="programado" <?php echo $mantenimiento['estado'] == 'programado' ? 'selected' : ''; ?>>Programado</option>
-                            <option value="en_proceso" <?php echo $mantenimiento['estado'] == 'en_proceso' ? 'selected' : ''; ?>>En proceso</option>
-                            <option value="completado" <?php echo $mantenimiento['estado'] == 'completado' ? 'selected' : ''; ?>>Completado</option>
+                            <option value="Programado" <?php echo $mantenimiento['estado'] == 'Programado' ? 'selected' : ''; ?>>Programado</option>
+                            <option value="En proceso" <?php echo $mantenimiento['estado'] == 'En proceso' ? 'selected' : ''; ?>>En proceso</option>
+                            <option value="Completado" <?php echo $mantenimiento['estado'] == 'Completado' ? 'selected' : ''; ?>>Completado</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary">Guardar cambios</button>

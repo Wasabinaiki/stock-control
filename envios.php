@@ -8,9 +8,18 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     exit;
 }
 
-// Obtener lista de envíos
-$sql = "SELECT e.*, u.username FROM envios e JOIN usuarios u ON e.usuario_id = u.id_usuario ORDER BY e.fecha_envio DESC";
-$result_envios = mysqli_query($link, $sql);
+// Obtener el ID del usuario actual
+$usuario_id = $_SESSION["id"];
+
+// Obtener lista de envíos del usuario actual
+$sql = "SELECT id_envio, estado_envio, fecha_salida, fecha_llegada FROM envios WHERE usuario_id = ? ORDER BY fecha_envio DESC";
+if ($stmt = mysqli_prepare($link, $sql)) {
+    mysqli_stmt_bind_param($stmt, "i", $usuario_id);
+    mysqli_stmt_execute($stmt);
+    $result_envios = mysqli_stmt_get_result($stmt);
+} else {
+    $error = "Error al preparar la consulta: " . mysqli_error($link);
+}
 ?>
 
 <!DOCTYPE html>
@@ -84,31 +93,26 @@ $result_envios = mysqli_query($link, $sql);
                 <thead>
                     <tr>
                         <th>ID Envío</th>
-                        <th>Usuario</th>
-                        <th>Destino</th>
                         <th>Estado</th>
-                        <th>Fecha</th>
-                        <th>Acciones</th>
+                        <th>Fecha de Salida</th>
+                        <th>Fecha de Llegada</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
-                    if (mysqli_num_rows($result_envios) > 0) {
+                    if (isset($result_envios) && mysqli_num_rows($result_envios) > 0) {
                         while($row = mysqli_fetch_assoc($result_envios)) {
+                            $estadoClass = ($row['estado_envio'] == 'Completado') ? 'estado-completado' : 'estado-proceso';
+                            
                             echo "<tr>";
                             echo "<td>" . htmlspecialchars($row['id_envio']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['username']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['direccion_destino']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['estado_envio']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['fecha_envio']) . "</td>";
-                            echo "<td>";
-                            echo "<a href='ver_envio.php?id=" . $row['id_envio'] . "' class='btn btn-sm btn-info me-2'><i class='fas fa-eye'></i></a>";
-                            echo "<a href='editar_envio.php?id=" . $row['id_envio'] . "' class='btn btn-sm btn-warning me-2'><i class='fas fa-edit'></i></a>";
-                            echo "</td>";
+                            echo "<td class='" . $estadoClass . "'>" . htmlspecialchars($row['estado_envio']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['fecha_salida'] ?? 'Pendiente') . "</td>";
+                            echo "<td>" . htmlspecialchars($row['fecha_llegada'] ?? 'Pendiente') . "</td>";
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='6' class='text-center'>No hay envíos registrados</td></tr>";
+                        echo "<tr><td colspan='4' class='text-center'>No hay envíos registrados</td></tr>";
                     }
                     ?>
                 </tbody>
@@ -119,3 +123,4 @@ $result_envios = mysqli_query($link, $sql);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

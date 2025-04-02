@@ -10,6 +10,15 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION[
 // Obtener lista de PQRs
 $sql = "SELECT p.*, u.username FROM pqrs p JOIN usuarios u ON p.id_usuario = u.id_usuario ORDER BY p.fecha_creacion DESC";
 $result_pqrs = mysqli_query($link, $sql);
+
+// Función para depurar valores
+function debug_to_console($data) {
+    $output = $data;
+    if (is_array($output))
+        $output = implode(',', $output);
+
+    echo "<script>console.log('Debug: " . addslashes($output) . "');</script>";
+}
 ?>
 
 <!DOCTYPE html>
@@ -110,41 +119,43 @@ $result_pqrs = mysqli_query($link, $sql);
                         <tbody>
                             <?php if(mysqli_num_rows($result_pqrs) > 0): ?>
                                 <?php while($row = mysqli_fetch_assoc($result_pqrs)): ?>
+                                <?php 
+                                    // Depurar el valor del estado para ver qué contiene exactamente
+                                    debug_to_console("Estado para ID " . $row['id'] . ": '" . $row['estado'] . "'");
+                                ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($row['id']); ?></td>
                                     <td><?php echo htmlspecialchars($row['username']); ?></td>
                                     <td><?php echo htmlspecialchars($row['tipo']); ?></td>
                                     <td>
-                                        <span class="badge <?php 
-                                            switch($row['estado']) {
-                                                case 'pendiente':
-                                                    echo 'bg-warning';
-                                                    break;
-                                                case 'en_proceso':
-                                                    echo 'bg-info';
-                                                    break;
-                                                case 'resuelto':
-                                                    echo 'bg-success';
-                                                    break;
-                                                default:
-                                                    echo 'bg-secondary';
-                                            }
-                                        ?>">
-                                            <?php 
-                                            switch($row['estado']) {
-                                                case 'pendiente':
-                                                    echo 'Pendiente';
-                                                    break;
-                                                case 'en_proceso':
-                                                    echo 'En proceso';
-                                                    break;
-                                                case 'resuelto':
-                                                    echo 'Resuelto';
-                                                    break;
-                                                default:
-                                                    echo htmlspecialchars($row['estado']);
-                                            }
-                                            ?>
+                                        <?php 
+                                        // Asegurémonos de que el estado esté definido
+                                        $estado = isset($row['estado']) ? trim(strtolower($row['estado'])) : '';
+                                        
+                                        // Determinar la clase de la insignia y el texto según el estado
+                                        $badgeClass = 'bg-secondary';
+                                        $estadoTexto = 'Desconocido';
+                                        
+                                        // Manejar todos los posibles formatos de "en proceso"
+                                        if ($estado == 'pendiente') {
+                                            $badgeClass = 'bg-warning';
+                                            $estadoTexto = 'Pendiente';
+                                        } 
+                                        elseif ($estado == 'en_proceso' || $estado == 'en proceso' || $estado == 'enproceso') {
+                                            $badgeClass = 'bg-info';
+                                            $estadoTexto = 'En proceso';
+                                        }
+                                        elseif ($estado == 'resuelto') {
+                                            $badgeClass = 'bg-success';
+                                            $estadoTexto = 'Resuelto';
+                                        }
+                                        else {
+                                            // Si no coincide con ninguno de los anteriores, mostrar el valor original
+                                            $estadoTexto = empty($estado) ? 'En proceso' : htmlspecialchars($estado);
+                                        }
+                                        ?>
+                                        <span class="badge <?php echo $badgeClass; ?>">
+                                            <?php echo $estadoTexto; ?>
                                         </span>
                                     </td>
                                     <td><?php echo htmlspecialchars(date('d/m/Y', strtotime($row['fecha_creacion']))); ?></td>

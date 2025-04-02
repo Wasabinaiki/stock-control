@@ -127,7 +127,7 @@ $result_mantenimientos = mysqli_query($link, $sql);
                                                 case 'programado':
                                                     echo 'bg-warning';
                                                     break;
-                                                case 'en_proceso':
+                                                case 'en proceso':
                                                     echo 'bg-info';
                                                     break;
                                                 case 'completado':

@@ -115,8 +115,8 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             <h2 class="mt-4">Contacto de Soporte</h2>
             <p>Si necesitas ayuda adicional, no dudes en contactarnos:</p>
             <ul>
-                <li><i class="fas fa-envelope me-2"></i>Correo electrónico: soporte@stockcontrol.com</li>
-                <li><i class="fas fa-phone me-2"></i>Teléfono: (123) 456-7890</li>
+                <li><i class="fas fa-envelope me-2"></i>Correo electrónico: truquemdaniels.cla@gmail.com</li>
+                <li><i class="fas fa-phone me-2"></i>Teléfono: (+57) 3246044420</li>
                 <li><i class="fas fa-clock me-2"></i>Horario de atención: Lunes a Viernes, 8:00 AM - 6:00 PM</li>
             </ul>
         </div>
