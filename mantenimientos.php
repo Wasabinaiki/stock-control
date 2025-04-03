@@ -55,6 +55,20 @@ $stats = [
 while ($row = mysqli_fetch_assoc($result_stats)) {
     $stats[$row['estado']] = $row['total'];
 }
+
+// Función para formatear el estado
+function formatearEstado($estado) {
+    switch ($estado) {
+        case 'programado':
+            return 'Programado';
+        case 'en_proceso':
+            return 'En proceso';
+        case 'completado':
+            return 'Completado';
+        default:
+            return ucfirst($estado);
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -174,13 +188,12 @@ while ($row = mysqli_fetch_assoc($result_stats)) {
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="informes.php"><i class="fas fa-chart-bar me-2"></i>Informes</a>
-                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a>
                     </li>
@@ -256,7 +269,7 @@ while ($row = mysqli_fetch_assoc($result_stats)) {
                             echo "<td>" . htmlspecialchars($row['tipo_dispositivo'] . ' ' . $row['marca'] . ' ' . $row['modelo']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['fecha_programada']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['descripcion']) . "</td>";
-                            echo "<td><span class='" . $row['estado'] . "'>" . htmlspecialchars($row['estado']) . "</span></td>";
+                            echo "<td><span class='" . $row['estado'] . "'>" . formatearEstado($row['estado']) . "</span></td>";
                             echo "</tr>";
                         }
                     } else {

@@ -7,6 +7,14 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION[
     exit;
 }
 
+// Función para formatear el estado
+function formatearEstado($estado) {
+    // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
+    $estado = strtolower(str_replace('_', ' ', $estado));
+    // Capitalizar la primera letra de cada palabra
+    return ucwords($estado);
+}
+
 // Función para obtener todos los formularios de contacto
 function getContactForms($link) {
     $sql = "SELECT * FROM contactos ORDER BY fecha DESC";
@@ -77,14 +85,28 @@ $contactForms = getContactForms($link);
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
         .dashboard-link {
-            background-color: #667eea;
             color: white !important;
             border-radius: 5px;
             padding: 8px 15px !important;
             margin-right: 10px;
         }
-        .dashboard-link:hover {
-            background-color: #5a6fd9;
+        /* Estados estandarizados */
+        .badge {
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        .bg-pendiente {
+            background-color: #ffc107 !important; /* Amarillo para pendiente */
+            color: #000 !important;
+        }
+        .bg-en-proceso {
+            background-color: #0d6efd !important; /* Azul para en proceso */
+            color: #fff !important;
+        }
+        .bg-resuelto {
+            background-color: #198754 !important; /* Verde para resuelto */
+            color: #fff !important;
         }
     </style>
 </head>
@@ -99,7 +121,7 @@ $contactForms = getContactForms($link);
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link dashboard-link" href="admin_dashboard.php">
-                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard Administrador
                         </a>
                     </li>
                 </ul>
@@ -142,7 +164,21 @@ $contactForms = getContactForms($link);
                             <td><?php echo htmlspecialchars($form['email']); ?></td>
                             <td><?php echo htmlspecialchars($form['asunto']); ?></td>
                             <td><?php echo $form['fecha']; ?></td>
-                            <td><?php echo htmlspecialchars($form['estado']); ?></td>
+                            <td>
+                                <?php 
+                                $badgeClass = '';
+                                if ($form['estado'] == 'Resuelto') {
+                                    $badgeClass = 'bg-resuelto';
+                                } elseif ($form['estado'] == 'En proceso') {
+                                    $badgeClass = 'bg-en-proceso';
+                                } else {
+                                    $badgeClass = 'bg-pendiente';
+                                }
+                                ?>
+                                <span class="badge <?php echo $badgeClass; ?>">
+                                    <?php echo formatearEstado($form['estado']); ?>
+                                </span>
+                            </td>
                             <td>
                                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal<?php echo $form['id']; ?>">
                                     Editar

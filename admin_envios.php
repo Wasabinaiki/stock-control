@@ -30,6 +30,14 @@ $result = mysqli_query($link, $sql);
 if (!$result) {
     die("Error en la consulta: " . mysqli_error($link));
 }
+
+// Función para formatear el estado
+function formatearEstado($estado) {
+    // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
+    $estado = str_replace('_', ' ', $estado);
+    // Capitalizar la primera letra de cada palabra
+    return ucwords($estado);
+}
 ?>
 
 <!DOCTYPE html>
@@ -95,6 +103,26 @@ if (!$result) {
         .completed {
             background-color: #d4edda !important;
         }
+        /* Estados estandarizados */
+        .badge {
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        .bg-pendiente, .bg-en-proceso {
+            background-color: #ffc107 !important; /* Amarillo para en proceso */
+            color: #000 !important;
+        }
+        .bg-completado {
+            background-color: #198754 !important; /* Verde para completado */
+            color: #fff !important;
+        }
+        .dashboard-link {
+            color: white !important;
+            border-radius: 5px;
+            padding: 8px 15px !important;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -105,13 +133,14 @@ if (!$result) {
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="admin_dashboard.php"><i class="fas fa-tachometer-alt me-2"></i>Panel Admin</a>
+                        <a class="nav-link dashboard-link" href="admin_dashboard.php">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard Administrador
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
-                    </li>
+                </ul>
+                <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a>
                     </li>
@@ -141,9 +170,6 @@ if (!$result) {
         
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="fas fa-truck me-2"></i>Gestión de Envíos</h2>
-            <a href="admin_envio_agregar.php" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Registrar Nuevo Envío
-            </a>
         </div>
 
         <div class="table-responsive">
@@ -164,13 +190,20 @@ if (!$result) {
                     if (mysqli_num_rows($result) > 0) {
                         while($row = mysqli_fetch_assoc($result)) {
                             $rowClass = ($row['estado_envio'] == 'Completado') ? 'completed' : '';
-                            $estadoClass = ($row['estado_envio'] == 'Completado') ? 'estado-completado' : 'estado-proceso';
+                            
+                            // Determinar la clase de badge según el estado
+                            $badgeClass = '';
+                            if (strtolower($row['estado_envio']) == 'completado') {
+                                $badgeClass = 'bg-completado';
+                            } else {
+                                $badgeClass = 'bg-en-proceso';
+                            }
                             
                             echo "<tr class='" . $rowClass . "'>";
                             echo "<td>" . htmlspecialchars($row['id_envio']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['username']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['direccion_destino']) . "</td>";
-                            echo "<td class='" . $estadoClass . "'>" . htmlspecialchars($row['estado_envio']) . "</td>";
+                            echo "<td><span class='badge " . $badgeClass . "'>" . formatearEstado($row['estado_envio']) . "</span></td>";
                             echo "<td>" . htmlspecialchars($row['fecha_salida'] ?? 'Pendiente') . "</td>";
                             echo "<td>" . htmlspecialchars($row['fecha_llegada'] ?? 'Pendiente') . "</td>";
                             echo "<td class='text-nowrap'>";
@@ -204,4 +237,3 @@ if (!$result) {
 <?php
 mysqli_close($link);
 ?>
-

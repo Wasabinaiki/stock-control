@@ -53,10 +53,12 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
                     </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a>
                     </li>
@@ -115,6 +117,8 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             <h2 class="mt-4">Contacto de Soporte</h2>
             <p>Si necesitas ayuda adicional, no dudes en contactarnos:</p>
             <ul>
+                <li><i class="fas fa-envelope me  no dudes en contactarnos:</p>
+            <ul>
                 <li><i class="fas fa-envelope me-2"></i>Correo electrónico: truquemdaniels.cla@gmail.com</li>
                 <li><i class="fas fa-phone me-2"></i>Teléfono: (+57) 3246044420</li>
                 <li><i class="fas fa-clock me-2"></i>Horario de atención: Lunes a Viernes, 8:00 AM - 6:00 PM</li>
@@ -129,3 +133,4 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

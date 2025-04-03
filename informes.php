@@ -40,7 +40,7 @@ $result_tipos = mysqli_stmt_get_result($stmt_tipos);
 $tipos_labels = [];
 $tipos_data = [];
 while ($row = mysqli_fetch_assoc($result_tipos)) {
-    $tipos_labels[] = $row['tipo'];
+    $tipos_labels[] = ucfirst($row['tipo']); // Capitalizar primera letra
     $tipos_data[] = $row['total'];
 }
 
@@ -54,6 +54,20 @@ $stmt_mantenimientos = mysqli_prepare($link, $sql_mantenimientos);
 mysqli_stmt_bind_param($stmt_mantenimientos, "i", $id_usuario);
 mysqli_stmt_execute($stmt_mantenimientos);
 $result_mantenimientos = mysqli_stmt_get_result($stmt_mantenimientos);
+
+// Función para formatear el estado
+function formatearEstado($estado) {
+    switch ($estado) {
+        case 'programado':
+            return 'Programado';
+        case 'en_proceso':
+            return 'En proceso';
+        case 'completado':
+            return 'Completado';
+        default:
+            return ucfirst($estado);
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -152,13 +166,12 @@ $result_mantenimientos = mysqli_stmt_get_result($stmt_mantenimientos);
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="mantenimientos.php"><i class="fas fa-tools me-2"></i>Mantenimientos</a>
-                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a>
                     </li>
@@ -299,7 +312,7 @@ $result_mantenimientos = mysqli_stmt_get_result($stmt_mantenimientos);
                                             echo "<td>" . htmlspecialchars($mantenimiento['tipo'] . ' ' . $mantenimiento['marca'] . ' ' . $mantenimiento['modelo']) . "</td>";
                                             echo "<td>" . htmlspecialchars($mantenimiento['descripcion']) . "</td>";
                                             echo "<td>" . htmlspecialchars($mantenimiento['fecha_programada']) . "</td>";
-                                            echo "<td><span class='estado-" . $mantenimiento['estado'] . "'>" . htmlspecialchars($mantenimiento['estado']) . "</span></td>";
+                                            echo "<td><span class='estado-" . $mantenimiento['estado'] . "'>" . formatearEstado($mantenimiento['estado']) . "</span></td>";
                                             echo "</tr>";
                                         }
                                     } else {
@@ -470,3 +483,4 @@ $result_mantenimientos = mysqli_stmt_get_result($stmt_mantenimientos);
     </script>
 </body>
 </html>
+

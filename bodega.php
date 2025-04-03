@@ -106,10 +106,12 @@ if (!$result) {
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
                     </li>
+                </ul>
+                <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a>
                     </li>
@@ -139,7 +141,6 @@ if (!$result) {
         
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="fas fa-boxes me-2"></i>Gestión de Bodega</h2>
-            </a>
         </div>
 
         <div class="table-responsive">

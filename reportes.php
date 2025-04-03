@@ -92,6 +92,14 @@ $stmt_envios = mysqli_prepare($link, $sql_envios);
 mysqli_stmt_bind_param($stmt_envios, "i", $id_usuario);
 mysqli_stmt_execute($stmt_envios);
 $result_envios = mysqli_stmt_get_result($stmt_envios);
+
+// Función para formatear el estado
+function formatearEstado($estado) {
+    // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
+    $estado = strtolower(str_replace('_', ' ', $estado));
+    // Capitalizar la primera letra de cada palabra
+    return ucwords($estado);
+}
 ?>
 
 <!DOCTYPE html>
@@ -145,6 +153,37 @@ $result_envios = mysqli_stmt_get_result($stmt_envios);
             font-size: 0.9rem;
             color: #6c757d;
         }
+        /* Estados estandarizados */
+        .estado-pendiente, .badge-pendiente {
+            color: #ffc107 !important; /* Amarillo para pendiente */
+            font-weight: bold;
+        }
+        .estado-en-proceso, .badge-en-proceso {
+            color: #0d6efd !important; /* Azul para en proceso */
+            font-weight: bold;
+        }
+        .estado-resuelto, .estado-completado, .badge-resuelto, .badge-completado {
+            color: #198754 !important; /* Verde para resuelto/completado */
+            font-weight: bold;
+        }
+        /* Estilo para los badges */
+        .badge {
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        .bg-pendiente {
+            background-color: #ffc107 !important; /* Amarillo */
+            color: #000 !important;
+        }
+        .bg-en-proceso {
+            background-color: #0d6efd !important; /* Azul */
+            color: #fff !important;
+        }
+        .bg-resuelto, .bg-completado {
+            background-color: #198754 !important; /* Verde */
+            color: #fff !important;
+        }
     </style>
 </head>
 <body>
@@ -155,10 +194,12 @@ $result_envios = mysqli_stmt_get_result($stmt_envios);
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
                     </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a>
                     </li>
@@ -249,8 +290,16 @@ $result_envios = mysqli_stmt_get_result($stmt_envios);
                                         <td><?php echo htmlspecialchars($row['modelo']); ?></td>
                                         <td><?php echo htmlspecialchars($row['fecha_entrega']); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php echo $row['estado'] == 'Activo' ? 'success' : 'warning'; ?>">
-                                                <?php echo htmlspecialchars($row['estado']); ?>
+                                            <?php 
+                                            $estadoClass = 'badge-pendiente'; // por defecto
+                                            if (strtolower($row['estado']) == 'activo' || strtolower($row['estado']) == 'completado') {
+                                                $estadoClass = 'badge-completado';
+                                            } elseif (strtolower($row['estado']) == 'en proceso') {
+                                                $estadoClass = 'badge-en-proceso';
+                                            }
+                                            ?>
+                                            <span class="badge bg-<?php echo str_replace('badge-', '', $estadoClass); ?>">
+                                                <?php echo formatearEstado($row['estado']); ?>
                                             </span>
                                         </td>
                                     </tr>
@@ -280,7 +329,6 @@ $result_envios = mysqli_stmt_get_result($stmt_envios);
                                     <th>Descripción</th>
                                     <th>Fecha Programada</th>
                                     <th>Estado</th>
-                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -291,32 +339,21 @@ $result_envios = mysqli_stmt_get_result($stmt_envios);
                                         <td><?php echo htmlspecialchars(substr($row['descripcion'], 0, 50)) . (strlen($row['descripcion']) > 50 ? '...' : ''); ?></td>
                                         <td><?php echo htmlspecialchars($row['fecha_programada']); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php 
-                                                if ($row['estado'] == 'completado') {
-                                                    echo 'success';
-                                                } elseif ($row['estado'] == 'en_proceso') {
-                                                    echo 'warning';
-                                                } else {
-                                                    echo 'info';
-                                                }
-                                            ?>">
-                                                <?php 
-                                                if ($row['estado'] == 'completado') {
-                                                    echo 'Completado';
-                                                } elseif ($row['estado'] == 'en_proceso') {
-                                                    echo 'En proceso';
-                                                } elseif ($row['estado'] == 'programado') {
-                                                    echo 'Programado';
-                                                } else {
-                                                    echo htmlspecialchars($row['estado']);
-                                                }
-                                                ?>
+                                            <?php 
+                                            $estado = strtolower($row['estado']);
+                                            $badgeClass = '';
+                                            
+                                            if ($estado == 'completado') {
+                                                $badgeClass = 'bg-completado';
+                                            } elseif ($estado == 'en_proceso' || $estado == 'en proceso') {
+                                                $badgeClass = 'bg-en-proceso';
+                                            } else {
+                                                $badgeClass = 'bg-pendiente';
+                                            }
+                                            ?>
+                                            <span class="badge <?php echo $badgeClass; ?>">
+                                                <?php echo formatearEstado($row['estado']); ?>
                                             </span>
-                                        </td>
-                                        <td>
-                                            <a href="ver_mantenimiento.php?id=<?php echo $row['id']; ?>" class="btn btn-primary btn-sm">
-                                                <i class="fas fa-eye me-1"></i>Ver
-                                            </a>
                                         </td>
                                     </tr>
                                 <?php endwhile; ?>
@@ -329,7 +366,7 @@ $result_envios = mysqli_stmt_get_result($stmt_envios);
             </div>
         </div>
 
-        <!-- NUEVA SECCIÓN: PQRs Registrados -->
+        <!-- PQRs Registrados -->
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">PQRs Registrados</h5>
@@ -355,16 +392,20 @@ $result_envios = mysqli_stmt_get_result($stmt_envios);
                                         <td><?php echo htmlspecialchars(substr($row['descripcion'], 0, 50)) . (strlen($row['descripcion']) > 50 ? '...' : ''); ?></td>
                                         <td><?php echo htmlspecialchars($row['fecha_creacion']); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php 
-                                                if ($row['estado'] == 'resuelto') {
-                                                    echo 'success';
-                                                } elseif ($row['estado'] == 'en_proceso') {
-                                                    echo 'warning';
-                                                } else {
-                                                    echo 'info';
-                                                }
-                                            ?>">
-                                                <?php echo htmlspecialchars($row['estado'] ? $row['estado'] : 'Pendiente'); ?>
+                                            <?php 
+                                            $estado = strtolower($row['estado'] ?: 'pendiente');
+                                            $badgeClass = '';
+                                            
+                                            if ($estado == 'resuelto') {
+                                                $badgeClass = 'bg-resuelto';
+                                            } elseif ($estado == 'en_proceso' || $estado == 'en proceso') {
+                                                $badgeClass = 'bg-en-proceso';
+                                            } else {
+                                                $badgeClass = 'bg-pendiente';
+                                            }
+                                            ?>
+                                            <span class="badge <?php echo $badgeClass; ?>">
+                                                <?php echo formatearEstado($row['estado'] ?: 'pendiente'); ?>
                                             </span>
                                         </td>
                                     </tr>
@@ -378,7 +419,7 @@ $result_envios = mysqli_stmt_get_result($stmt_envios);
             </div>
         </div>
 
-        <!-- NUEVA SECCIÓN: Formularios de Contacto -->
+        <!-- Formularios de Contacto -->
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">Formularios de Contacto Enviados</h5>
@@ -404,16 +445,20 @@ $result_envios = mysqli_stmt_get_result($stmt_envios);
                                         <td><?php echo htmlspecialchars(substr($row['mensaje'], 0, 50)) . (strlen($row['mensaje']) > 50 ? '...' : ''); ?></td>
                                         <td><?php echo htmlspecialchars($row['fecha']); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php 
-                                                if ($row['estado'] == 'Resuelto') {
-                                                    echo 'success';
-                                                } elseif ($row['estado'] == 'En proceso') {
-                                                    echo 'warning';
-                                                } else {
-                                                    echo 'info';
-                                                }
-                                            ?>">
-                                                <?php echo htmlspecialchars($row['estado']); ?>
+                                            <?php 
+                                            $estado = strtolower($row['estado']);
+                                            $badgeClass = '';
+                                            
+                                            if ($estado == 'resuelto') {
+                                                $badgeClass = 'bg-resuelto';
+                                            } elseif ($estado == 'en proceso') {
+                                                $badgeClass = 'bg-en-proceso';
+                                            } else {
+                                                $badgeClass = 'bg-pendiente';
+                                            }
+                                            ?>
+                                            <span class="badge <?php echo $badgeClass; ?>">
+                                                <?php echo formatearEstado($row['estado']); ?>
                                             </span>
                                         </td>
                                     </tr>
@@ -427,7 +472,7 @@ $result_envios = mysqli_stmt_get_result($stmt_envios);
             </div>
         </div>
 
-        <!-- NUEVA SECCIÓN: Dispositivos en Envío (sustituto de bodega) -->
+        <!-- Dispositivos en Envío (sustituto de bodega) -->
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">Mis Dispositivos en Bodega</h5>
@@ -453,8 +498,18 @@ $result_envios = mysqli_stmt_get_result($stmt_envios);
                                         <td><?php echo htmlspecialchars($row['fecha_envio']); ?></td>
                                         <td><?php echo htmlspecialchars($row['fecha_salida']); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php echo $row['estado_envio'] == 'Completado' ? 'success' : 'warning'; ?>">
-                                                <?php echo htmlspecialchars($row['estado_envio']); ?>
+                                            <?php 
+                                            $estado = $row['estado_envio'];
+                                            $badgeClass = '';
+                                            
+                                            if ($estado == 'Completado') {
+                                                $badgeClass = 'bg-completado';
+                                            } else {
+                                                $badgeClass = 'bg-en-proceso';
+                                            }
+                                            ?>
+                                            <span class="badge <?php echo $badgeClass; ?>">
+                                                <?php echo formatearEstado($row['estado_envio']); ?>
                                             </span>
                                         </td>
                                     </tr>

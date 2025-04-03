@@ -13,6 +13,14 @@ function logError($message) {
     error_log(date('[Y-m-d H:i:s] ') . $message . "\n", 3, 'error_log.txt');
 }
 
+// Función para formatear el estado
+function formatearEstado($estado) {
+    // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
+    $estado = strtolower(str_replace('_', ' ', $estado));
+    // Capitalizar la primera letra de cada palabra
+    return ucwords($estado);
+}
+
 // Filtrar mantenimientos por estado si se proporciona
 $estado_mantenimiento = isset($_GET['estado_mantenimiento']) ? $_GET['estado_mantenimiento'] : '';
 
@@ -111,14 +119,10 @@ if (!$result_envios) {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
         .dashboard-link {
-            background-color: #667eea;
             color: white !important;
             border-radius: 5px;
             padding: 8px 15px !important;
             margin-right: 10px;
-        }
-        .dashboard-link:hover {
-            background-color: #5a6fd9;
         }
         .filter-form {
             display: flex;
@@ -142,7 +146,7 @@ if (!$result_envios) {
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link dashboard-link" href="admin_dashboard.php">
-                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard Administrador
                         </a>
                     </li>
                 </ul>
@@ -204,17 +208,7 @@ if (!$result_envios) {
                                                     echo 'info';
                                                 }
                                             ?>">
-                                                <?php 
-                                                if ($row['estado'] == 'completado') {
-                                                    echo 'Completado';
-                                                } elseif ($row['estado'] == 'en_proceso') {
-                                                    echo 'En proceso';
-                                                } elseif ($row['estado'] == 'programado') {
-                                                    echo 'Programado';
-                                                } else {
-                                                    echo htmlspecialchars($row['estado']);
-                                                }
-                                                ?>
+                                                <?php echo formatearEstado($row['estado']); ?>
                                             </span>
                                         </td>
                                     </tr>
@@ -302,13 +296,13 @@ if (!$result_envios) {
                                             <span class="badge bg-<?php 
                                                 if ($row['estado'] == 'resuelto') {
                                                     echo 'success';
-                                                } elseif ($row['estado'] == 'en_proceso') {
+                                                } elseif ($row['estado'] == 'en_proceso' || $row['estado'] == 'en proceso') {
                                                     echo 'warning';
                                                 } else {
                                                     echo 'info';
                                                 }
                                             ?>">
-                                                <?php echo htmlspecialchars($row['estado'] ? $row['estado'] : 'Pendiente'); ?>
+                                                <?php echo formatearEstado($row['estado'] ? $row['estado'] : 'pendiente'); ?>
                                             </span>
                                         </td>
                                     </tr>
@@ -359,7 +353,7 @@ if (!$result_envios) {
                                                     echo 'info';
                                                 }
                                             ?>">
-                                                <?php echo htmlspecialchars($row['estado']); ?>
+                                                <?php echo formatearEstado($row['estado']); ?>
                                             </span>
                                         </td>
                                     </tr>
@@ -402,7 +396,7 @@ if (!$result_envios) {
                                         <td><?php echo htmlspecialchars($row['fecha_salida']); ?></td>
                                         <td>
                                             <span class="badge bg-<?php echo $row['estado_envio'] == 'Completado' ? 'success' : 'warning'; ?>">
-                                                <?php echo htmlspecialchars($row['estado_envio']); ?>
+                                                <?php echo formatearEstado($row['estado_envio']); ?>
                                             </span>
                                         </td>
                                     </tr>

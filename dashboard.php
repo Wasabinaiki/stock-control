@@ -7,6 +7,28 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 }
 // Determinar si el usuario es administrador
 $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
+
+// Obtener actividades recientes del usuario
+require_once "includes/config.php";
+$usuario_id = $_SESSION["id"];
+
+// Consulta para obtener las actividades recientes
+$sql_actividades = "
+    (SELECT 'PQRS' as tipo, fecha_creacion as fecha, CONCAT('Registraste un ', tipo) as descripcion FROM pqrs WHERE id_usuario = ? ORDER BY fecha_creacion DESC LIMIT 3)
+    UNION ALL
+    (SELECT 'Dispositivo' as tipo, fecha_entrega as fecha, CONCAT('Registraste un dispositivo ', tipo, ' ', marca) as descripcion FROM dispositivos WHERE id_usuario = ? ORDER BY fecha_entrega DESC LIMIT 3)
+    UNION ALL
+    (SELECT 'Mantenimiento' as tipo, fecha_programada as fecha, CONCAT('Programaste un mantenimiento para el ', fecha_programada) as descripcion FROM mantenimientos m JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo WHERE d.id_usuario = ? ORDER BY fecha_programada DESC LIMIT 3)
+    UNION ALL
+    (SELECT 'Contacto' as tipo, fecha as fecha, CONCAT('Enviaste un formulario de contacto: ', asunto) as descripcion FROM contactos WHERE email = (SELECT email FROM usuarios WHERE id_usuario = ?) ORDER BY fecha DESC LIMIT 3)
+    ORDER BY fecha DESC
+    LIMIT 5
+";
+
+$stmt_actividades = mysqli_prepare($link, $sql_actividades);
+mysqli_stmt_bind_param($stmt_actividades, "iiis", $usuario_id, $usuario_id, $usuario_id, $usuario_id);
+mysqli_stmt_execute($stmt_actividades);
+$result_actividades = mysqli_stmt_get_result($stmt_actividades);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -138,6 +160,27 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
             font-size: 3rem;
             color: #764ba2;
             margin-bottom: 1rem;
+        }
+        /* Estilos para actividades recientes */
+        .activity-item {
+            padding: 10px 15px;
+            border-left: 3px solid #764ba2;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+            border-radius: 0 5px 5px 0;
+            transition: all 0.3s ease;
+        }
+        .activity-item:hover {
+            background-color: #e9ecef;
+            transform: translateX(5px);
+        }
+        .activity-date {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .activity-icon {
+            margin-right: 10px;
+            color: #764ba2;
         }
         /* Responsive adjustments */
         @media (max-width: 768px) {
@@ -342,10 +385,42 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
                 </div>
             </div>
             <!-- Actividad reciente -->
-            <h3 class="mb-4 mt-4">Actividad Reciente</h3>
+            <h3 class="mb-4 mt-4">Movimientos Recientes</h3>
             <div class="card">
                 <div class="card-body">
-                    <p class="text-muted">No hay actividad reciente para mostrar.</p>
+                    <?php if (mysqli_num_rows($result_actividades) > 0): ?>
+                        <?php while ($actividad = mysqli_fetch_assoc($result_actividades)): ?>
+                            <div class="activity-item">
+                                <?php 
+                                $icon = '';
+                                switch ($actividad['tipo']) {
+                                    case 'PQRS':
+                                        $icon = 'fas fa-clipboard-list';
+                                        break;
+                                    case 'Dispositivo':
+                                        $icon = 'fas fa-laptop';
+                                        break;
+                                    case 'Mantenimiento':
+                                        $icon = 'fas fa-tools';
+                                        break;
+                                    case 'Contacto':
+                                        $icon = 'fas fa-envelope';
+                                        break;
+                                    default:
+                                        $icon = 'fas fa-bell';
+                                }
+                                ?>
+                                <i class="<?php echo $icon; ?> activity-icon"></i>
+                                <?php echo htmlspecialchars($actividad['descripcion']); ?>
+                                <div class="activity-date">
+                                    <i class="fas fa-clock me-1"></i>
+                                    <?php echo date('d/m/Y H:i', strtotime($actividad['fecha'])); ?>
+                                </div>
+                            </div>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <p class="text-muted">No hay actividades recientes para mostrar.</p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -405,3 +480,4 @@ $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
     </script>
 </body>
 </html>
+

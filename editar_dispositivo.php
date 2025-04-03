@@ -184,9 +184,9 @@ mysqli_close($link);
                 <div class="form-group">
                     <label for="tipo">Tipo</label>
                     <select name="tipo" id="tipo" class="form-control <?php echo (!empty($tipo_err)) ? 'is-invalid' : ''; ?>">
-                        <option value="computadora" <?php echo ($tipo == "computadora") ? "selected" : ""; ?>>Computadora</option>
-                        <option value="tablet" <?php echo ($tipo == "tablet") ? "selected" : ""; ?>>Tablet</option>
-                        <option value="celular" <?php echo ($tipo == "celular") ? "selected" : ""; ?>>Celular</option>
+                        <option value="Computadora" <?php echo ($tipo == "Computadora") ? "selected" : ""; ?>>Computadora</option>
+                        <option value="Tablet" <?php echo ($tipo == "Tablet") ? "selected" : ""; ?>>Tablet</option>
+                        <option value="Celular" <?php echo ($tipo == "Celular") ? "selected" : ""; ?>>Celular</option>
                     </select>
                     <span class="invalid-feedback"><?php echo $tipo_err; ?></span>
                 </div>

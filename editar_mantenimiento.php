@@ -55,6 +55,18 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         mysqli_stmt_close($stmt);
     }
 }
+
+// Función para depurar valores
+function debug_to_console($data) {
+    $output = $data;
+    if (is_array($output))
+        $output = implode(',', $output);
+
+    echo "<script>console.log('Debug: " . addslashes($output) . "');</script>";
+}
+
+// Depurar el valor del estado
+debug_to_console("Estado actual: " . $mantenimiento['estado']);
 ?>
 
 <!DOCTYPE html>
@@ -164,9 +176,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     <div class="mb-3">
                         <label for="estado" class="form-label">Estado</label>
                         <select class="form-select" id="estado" name="estado">
-                            <option value="Programado" <?php echo $mantenimiento['estado'] == 'Programado' ? 'selected' : ''; ?>>Programado</option>
-                            <option value="En proceso" <?php echo $mantenimiento['estado'] == 'En proceso' ? 'selected' : ''; ?>>En proceso</option>
-                            <option value="Completado" <?php echo $mantenimiento['estado'] == 'Completado' ? 'selected' : ''; ?>>Completado</option>
+                            <option value="programado" <?php echo strtolower($mantenimiento['estado']) == 'programado' ? 'selected' : ''; ?>>Programado</option>
+                            <option value="en_proceso" <?php echo strtolower($mantenimiento['estado']) == 'en_proceso' ? 'selected' : ''; ?>>En proceso</option>
+                            <option value="completado" <?php echo strtolower($mantenimiento['estado']) == 'completado' ? 'selected' : ''; ?>>Completado</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary">Guardar cambios</button>

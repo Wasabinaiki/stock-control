@@ -160,9 +160,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     <div class="mb-3">
                         <label for="estado" class="form-label">Estado</label>
                         <select class="form-select" id="estado" name="estado">
-                            <option value="Pendiente" <?php echo $pqr['estado'] == 'Pendiente' ? 'selected' : ''; ?>>Pendiente</option>
-                            <option value="En proceso" <?php echo $pqr['estado'] == 'En proceso' ? 'selected' : ''; ?>>En proceso</option>
-                            <option value="Resuelto" <?php echo $pqr['estado'] == 'Resuelto' ? 'selected' : ''; ?>>Resuelto</option>
+                            <option value="pendiente" <?php echo (strtolower($pqr['estado']) == 'pendiente' || $pqr['estado'] == '') ? 'selected' : ''; ?>>Pendiente</option>
+                            <option value="en_proceso" <?php echo (strtolower($pqr['estado']) == 'en_proceso' || strtolower($pqr['estado']) == 'en proceso') ? 'selected' : ''; ?>>En proceso</option>
+                            <option value="resuelto" <?php echo strtolower($pqr['estado']) == 'resuelto' ? 'selected' : ''; ?>>Resuelto</option>
                         </select>
                     </div>
                     <div class="mb-3">

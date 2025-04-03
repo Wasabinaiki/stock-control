@@ -7,6 +7,14 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION[
     exit;
 }
 
+// Función para formatear el estado
+function formatearEstado($estado) {
+    // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
+    $estado = strtolower(str_replace('_', ' ', $estado));
+    // Capitalizar la primera letra de cada palabra
+    return ucwords($estado);
+}
+
 // Obtener lista de mantenimientos
 $sql = "SELECT m.*, d.marca, d.modelo, u.username 
         FROM mantenimientos m 
@@ -65,6 +73,19 @@ $result_mantenimientos = mysqli_query($link, $sql);
         .table th {
             border-top: none;
         }
+        /* Estados estandarizados */
+        .bg-pendiente {
+            background-color: #ffc107 !important; /* Amarillo para pendiente/programado */
+            color: #000 !important;
+        }
+        .bg-en-proceso {
+            background-color: #0d6efd !important; /* Azul para en proceso */
+            color: #fff !important;
+        }
+        .bg-completado {
+            background-color: #198754 !important; /* Verde para completado */
+            color: #fff !important;
+        }
     </style>
 </head>
 <body>
@@ -78,7 +99,7 @@ $result_mantenimientos = mysqli_query($link, $sql);
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="admin_dashboard.php">
-                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard Administrador
                         </a>
                     </li>
                 </ul>
@@ -122,22 +143,20 @@ $result_mantenimientos = mysqli_query($link, $sql);
                                     <td><?php echo htmlspecialchars(date('d/m/Y', strtotime($row['fecha_programada']))); ?></td>
                                     <td><?php echo htmlspecialchars($row['descripcion']); ?></td>
                                     <td>
-                                        <span class="badge <?php 
-                                            switch($row['estado']) {
-                                                case 'programado':
-                                                    echo 'bg-warning';
-                                                    break;
-                                                case 'en proceso':
-                                                    echo 'bg-info';
-                                                    break;
-                                                case 'completado':
-                                                    echo 'bg-success';
-                                                    break;
-                                                default:
-                                                    echo 'bg-secondary';
+                                        <?php 
+                                            $estado = strtolower($row['estado']);
+                                            $badgeClass = '';
+                                            
+                                            if ($estado == 'completado') {
+                                                $badgeClass = 'bg-completado';
+                                            } elseif ($estado == 'en_proceso' || $estado == 'en proceso') {
+                                                $badgeClass = 'bg-en-proceso';
+                                            } else {
+                                                $badgeClass = 'bg-pendiente';
                                             }
-                                        ?>">
-                                            <?php echo ucfirst(str_replace('_', ' ', $row['estado'])); ?>
+                                        ?>
+                                        <span class="badge <?php echo $badgeClass; ?>">
+                                            <?php echo formatearEstado($row['estado']); ?>
                                         </span>
                                     </td>
                                     <td>

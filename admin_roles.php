@@ -99,7 +99,7 @@ $result_users = mysqli_query($link, $sql);
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="admin_dashboard.php">
-                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard Administrador
                         </a>
                     </li>
                 </ul>

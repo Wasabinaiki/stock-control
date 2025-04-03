@@ -106,7 +106,7 @@ if (isset($_SESSION['success_message'])) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php">Dashboard</a>
+                        <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav ms-auto">
@@ -193,3 +193,4 @@ if (isset($_SESSION['success_message'])) {
 <?php
 mysqli_close($link);
 ?>
+

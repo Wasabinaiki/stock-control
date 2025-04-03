@@ -8,6 +8,14 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION[
     exit;
 }
 
+// Función para formatear el estado
+function formatearEstado($estado) {
+    // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
+    $estado = strtolower(str_replace('_', ' ', $estado));
+    // Capitalizar la primera letra de cada palabra
+    return ucwords($estado);
+}
+
 // Obtener estadísticas generales
 $sql_usuarios = "SELECT COUNT(*) as total FROM usuarios";
 $result_usuarios = mysqli_query($link, $sql_usuarios);
@@ -46,7 +54,7 @@ $color_map = [
 ];
 
 while ($row = mysqli_fetch_assoc($result_estados)) {
-    $estados_labels[] = $row['estado'];
+    $estados_labels[] = formatearEstado($row['estado']);
     $estados_data[] = $row['total'];
     // Asignar color según el estado
     $estados_colors[] = isset($color_map[$row['estado']]) ? $color_map[$row['estado']] : '#6c757d';
@@ -202,6 +210,12 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
             height: 10px;
             margin-top: 10px;
         }
+        .dashboard-link {
+            color: white !important;
+            border-radius: 5px;
+            padding: 8px 15px !important;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -212,10 +226,14 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="admin_dashboard.php"><i class="fas fa-tachometer-alt me-2"></i>Panel de Administración</a>
+                        <a class="nav-link dashboard-link" href="admin_dashboard.php">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard Administrador
+                        </a>
                     </li>
+                </ul>
+                <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a>
                     </li>
