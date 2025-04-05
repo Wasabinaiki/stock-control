@@ -130,7 +130,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["confirmar_envio"]) && 
         <div class="container-fluid">
             <a class="navbar-brand" href="#"><i class="fas fa-tools me-2"></i>Mantenimientos Programados</a>
             <div class="d-flex align-items-center me-auto">
-                <a class="nav-link text-white" href="admin_dashboard.php">
+                <a class="nav-link text-white" href="dashboard.php">
                     <i class="fas fa-home me-2"></i>Dashboard
                 </a>
             </div>
