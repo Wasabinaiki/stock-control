@@ -3,13 +3,14 @@ session_start();
 require_once "includes/config.php";
 
 // Verificar si el usuario ha iniciado sesión y es administrador
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION["rol"] !== "administrador"){
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION["rol"] !== "administrador") {
     header("location: login.php");
     exit;
 }
 
 // Función para formatear el estado
-function formatearEstado($estado) {
+function formatearEstado($estado)
+{
     // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
     $estado = strtolower(str_replace('_', ' ', $estado));
     // Capitalizar la primera letra de cada palabra
@@ -104,8 +105,8 @@ $sql_eficiencia = "SELECT
                     FROM mantenimientos";
 $result_eficiencia = mysqli_query($link, $sql_eficiencia);
 $eficiencia_data = mysqli_fetch_assoc($result_eficiencia);
-$eficiencia = ($eficiencia_data['total'] > 0) ? 
-              round(($eficiencia_data['completados'] / $eficiencia_data['total']) * 100, 1) : 0;
+$eficiencia = ($eficiencia_data['total'] > 0) ?
+    round(($eficiencia_data['completados'] / $eficiencia_data['total']) * 100, 1) : 0;
 
 // 4. Tasa de dispositivos activos
 $sql_activos = "SELECT COUNT(*) as total FROM dispositivos WHERE estado = 'activo' OR estado = 'disponible'";
@@ -121,6 +122,7 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -132,84 +134,104 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
         body {
             background-color: #f8f9fa;
         }
+
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .navbar-brand, .nav-link {
+
+        .navbar-brand,
+        .nav-link {
             color: white !important;
         }
+
         .card {
             border: none;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
+
         .card-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             font-weight: bold;
             border-radius: 10px 10px 0 0 !important;
         }
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
         }
+
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+
         .chart-container {
             position: relative;
             height: 300px;
             width: 100%;
         }
+
         .table thead th {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333 !important; /* Cambiado a gris oscuro para mejor legibilidad */
+            color: #333 !important;
+            /* Cambiado a gris oscuro para mejor legibilidad */
             border: none;
         }
+
         .stat-card {
             text-align: center;
             padding: 20px;
         }
+
         .stat-card i {
             font-size: 2.5rem;
             margin-bottom: 15px;
             color: #667eea;
         }
+
         .stat-card .stat-value {
             font-size: 2rem;
             font-weight: bold;
             margin-bottom: 5px;
         }
+
         .stat-card .stat-label {
             font-size: 1rem;
             color: #6c757d;
         }
+
         .metric-card {
             background-color: #fff;
             border-radius: 10px;
             padding: 15px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             height: 100%;
         }
+
         .metric-card .metric-icon {
             font-size: 2rem;
             margin-bottom: 10px;
         }
+
         .metric-card .metric-value {
             font-size: 1.5rem;
             font-weight: bold;
             margin-bottom: 5px;
         }
+
         .metric-card .metric-label {
             font-size: 0.9rem;
             color: #6c757d;
         }
+
         .progress {
             height: 10px;
             margin-top: 10px;
         }
+
         .dashboard-link {
             color: white !important;
             border-radius: 5px;
@@ -218,6 +240,7 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
@@ -244,7 +267,7 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
 
     <div class="container mt-4">
         <h2 class="mb-4"><i class="fas fa-chart-line me-2"></i>Informes y Estadísticas</h2>
-        
+
         <!-- Estadísticas Generales -->
         <div class="row mb-4">
             <div class="col-md-4">
@@ -269,7 +292,7 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                 </div>
             </div>
         </div>
-        
+
         <!-- Gráficos -->
         <div class="row mb-4">
             <div class="col-md-6">
@@ -297,7 +320,7 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                 </div>
             </div>
         </div>
-        
+
         <!-- Métricas de Rendimiento -->
         <div class="row mb-4">
             <div class="col-md-12">
@@ -315,11 +338,14 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                                     <div class="metric-value"><?php echo $eficiencia; ?>%</div>
                                     <div class="metric-label">Eficiencia de Mantenimientos</div>
                                     <div class="progress">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: <?php echo $eficiencia; ?>%" aria-valuenow="<?php echo $eficiencia; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                        <div class="progress-bar bg-primary" role="progressbar"
+                                            style="width: <?php echo $eficiencia; ?>%"
+                                            aria-valuenow="<?php echo $eficiencia; ?>" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- MÉTRICA ACTUALIZADA 1: Dispositivos Activos en lugar de Dispositivos por Usuario -->
                             <div class="col-md-3 mb-3">
                                 <div class="metric-card">
@@ -329,27 +355,30 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                                     <div class="metric-value"><?php echo $tasa_activos; ?>%</div>
                                     <div class="metric-label">Dispositivos Activos</div>
                                     <div class="progress">
-                                        <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $tasa_activos; ?>%" aria-valuenow="<?php echo $tasa_activos; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                        <div class="progress-bar bg-success" role="progressbar"
+                                            style="width: <?php echo $tasa_activos; ?>%"
+                                            aria-valuenow="<?php echo $tasa_activos; ?>" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-3 mb-3">
                                 <div class="metric-card">
                                     <div class="metric-icon text-warning">
                                         <i class="fas fa-calendar-check"></i>
                                     </div>
                                     <div class="metric-value">
-                                        <?php 
+                                        <?php
                                         $sql_mant_mes = "SELECT COUNT(*) as total FROM mantenimientos WHERE MONTH(fecha_programada) = MONTH(CURRENT_DATE())";
                                         $result_mant_mes = mysqli_query($link, $sql_mant_mes);
-                                        echo mysqli_fetch_assoc($result_mant_mes)['total']; 
+                                        echo mysqli_fetch_assoc($result_mant_mes)['total'];
                                         ?>
                                     </div>
                                     <div class="metric-label">Mantenimientos este Mes</div>
                                 </div>
                             </div>
-                            
+
                             <!-- MÉTRICA ACTUALIZADA 2: Mantenimientos Pendientes en lugar de Tiempo Promedio de Mantenimiento -->
                             <div class="col-md-3 mb-3">
                                 <div class="metric-card">
@@ -361,7 +390,7 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row mt-3">
                             <div class="col-md-6 mb-3">
                                 <div class="metric-card">
@@ -377,11 +406,12 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                                             </thead>
                                             <tbody>
                                                 <?php foreach ($marcas_data as $marca => $cantidad): ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($marca); ?></td>
-                                                    <td><?php echo $cantidad; ?></td>
-                                                    <td><?php echo round(($cantidad / $total_dispositivos) * 100, 1); ?>%</td>
-                                                </tr>
+                                                    <tr>
+                                                        <td><?php echo htmlspecialchars($marca); ?></td>
+                                                        <td><?php echo $cantidad; ?></td>
+                                                        <td><?php echo round(($cantidad / $total_dispositivos) * 100, 1); ?>%
+                                                        </td>
+                                                    </tr>
                                                 <?php endforeach; ?>
                                             </tbody>
                                         </table>
@@ -402,11 +432,12 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                                             </thead>
                                             <tbody>
                                                 <?php foreach ($usuarios_activos as $username => $cantidad): ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($username); ?></td>
-                                                    <td><?php echo $cantidad; ?></td>
-                                                    <td><?php echo round(($cantidad / $total_dispositivos) * 100, 1); ?>%</td>
-                                                </tr>
+                                                    <tr>
+                                                        <td><?php echo htmlspecialchars($username); ?></td>
+                                                        <td><?php echo $cantidad; ?></td>
+                                                        <td><?php echo round(($cantidad / $total_dispositivos) * 100, 1); ?>%
+                                                        </td>
+                                                    </tr>
                                                 <?php endforeach; ?>
                                             </tbody>
                                         </table>
@@ -418,7 +449,7 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                 </div>
             </div>
         </div>
-        
+
         <!-- Tablas de Datos -->
         <div class="row">
             <div class="col-md-6">
@@ -531,7 +562,7 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
                                 const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
@@ -569,7 +600,7 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
                                 const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
@@ -583,4 +614,5 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
         });
     </script>
 </body>
+
 </html>

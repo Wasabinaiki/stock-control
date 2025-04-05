@@ -2,7 +2,7 @@
 session_start();
 require_once "includes/config.php";
 
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION["rol"] !== "administrador"){
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION["rol"] !== "administrador") {
     header("location: login.php");
     exit;
 }
@@ -20,11 +20,11 @@ $sql = "SELECT m.*, d.marca, d.modelo, u.username
         JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
         JOIN usuarios u ON d.id_usuario = u.id_usuario
         WHERE m.id = ?";
-if($stmt = mysqli_prepare($link, $sql)){
+if ($stmt = mysqli_prepare($link, $sql)) {
     mysqli_stmt_bind_param($stmt, "i", $mantenimiento_id);
-    if(mysqli_stmt_execute($stmt)){
+    if (mysqli_stmt_execute($stmt)) {
         $result = mysqli_stmt_get_result($stmt);
-        if(mysqli_num_rows($result) == 1){
+        if (mysqli_num_rows($result) == 1) {
             $mantenimiento = mysqli_fetch_assoc($result);
         } else {
             header("location: admin_mantenimientos.php");
@@ -37,15 +37,15 @@ if($stmt = mysqli_prepare($link, $sql)){
 }
 
 // Procesar el formulario de edición
-if($_SERVER["REQUEST_METHOD"] == "POST"){
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $new_fecha = $_POST["fecha_programada"];
     $new_descripcion = $_POST["descripcion"];
     $new_estado = $_POST["estado"];
-    
+
     $sql = "UPDATE mantenimientos SET fecha_programada = ?, descripcion = ?, estado = ? WHERE id = ?";
-    if($stmt = mysqli_prepare($link, $sql)){
+    if ($stmt = mysqli_prepare($link, $sql)) {
         mysqli_stmt_bind_param($stmt, "sssi", $new_fecha, $new_descripcion, $new_estado, $mantenimiento_id);
-        if(mysqli_stmt_execute($stmt)){
+        if (mysqli_stmt_execute($stmt)) {
             $_SESSION['success_message'] = "Mantenimiento actualizado con éxito.";
             header("location: admin_mantenimientos.php");
             exit();
@@ -57,7 +57,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 }
 
 // Función para depurar valores
-function debug_to_console($data) {
+function debug_to_console($data)
+{
     $output = $data;
     if (is_array($output))
         $output = implode(',', $output);
@@ -71,6 +72,7 @@ debug_to_console("Estado actual: " . $mantenimiento['estado']);
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -82,19 +84,24 @@ debug_to_console("Estado actual: " . $mantenimiento['estado']);
             background-color: #f8f9fa;
             padding-bottom: 40px;
         }
+
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin-bottom: 30px;
         }
-        .navbar-brand, .nav-link {
+
+        .navbar-brand,
+        .nav-link {
             color: white !important;
         }
+
         .card {
             border: none;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
+
         .card-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -102,21 +109,26 @@ debug_to_console("Estado actual: " . $mantenimiento['estado']);
             border-radius: 10px 10px 0 0 !important;
             padding: 15px 20px;
         }
+
         .card-body {
             padding: 20px;
         }
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
         }
+
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+
         .alert {
             margin-bottom: 20px;
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
@@ -144,34 +156,41 @@ debug_to_console("Estado actual: " . $mantenimiento['estado']);
     </nav>
 
     <div class="container">
-        <?php if(isset($error_message)): ?>
+        <?php if (isset($error_message)): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="fas fa-exclamation-circle me-2"></i><?php echo $error_message; ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
-        
+
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Editar Mantenimiento #<?php echo $mantenimiento['id']; ?></h5>
+                <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Editar Mantenimiento
+                    #<?php echo $mantenimiento['id']; ?></h5>
             </div>
             <div class="card-body">
-                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"] . "?id=" . $mantenimiento_id); ?>" method="post">
+                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"] . "?id=" . $mantenimiento_id); ?>"
+                    method="post">
                     <div class="mb-3">
                         <label for="dispositivo" class="form-label">Dispositivo</label>
-                        <input type="text" class="form-control" id="dispositivo" value="<?php echo htmlspecialchars($mantenimiento['marca'] . ' ' . $mantenimiento['modelo']); ?>" readonly>
+                        <input type="text" class="form-control" id="dispositivo"
+                            value="<?php echo htmlspecialchars($mantenimiento['marca'] . ' ' . $mantenimiento['modelo']); ?>"
+                            readonly>
                     </div>
                     <div class="mb-3">
                         <label for="usuario" class="form-label">Usuario</label>
-                        <input type="text" class="form-control" id="usuario" value="<?php echo htmlspecialchars($mantenimiento['username']); ?>" readonly>
+                        <input type="text" class="form-control" id="usuario"
+                            value="<?php echo htmlspecialchars($mantenimiento['username']); ?>" readonly>
                     </div>
                     <div class="mb-3">
                         <label for="fecha_programada" class="form-label">Fecha Programada</label>
-                        <input type="date" class="form-control" id="fecha_programada" name="fecha_programada" value="<?php echo htmlspecialchars($mantenimiento['fecha_programada']); ?>" required>
+                        <input type="date" class="form-control" id="fecha_programada" name="fecha_programada"
+                            value="<?php echo htmlspecialchars($mantenimiento['fecha_programada']); ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="descripcion" class="form-label">Descripción</label>
-                        <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required><?php echo htmlspecialchars($mantenimiento['descripcion']); ?></textarea>
+                        <textarea class="form-control" id="descripcion" name="descripcion" rows="3"
+                            required><?php echo htmlspecialchars($mantenimiento['descripcion']); ?></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="estado" class="form-label">Estado</label>
@@ -189,4 +208,5 @@ debug_to_console("Estado actual: " . $mantenimiento['estado']);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

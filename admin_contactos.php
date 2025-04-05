@@ -15,9 +15,32 @@ function formatearEstado($estado) {
     return ucwords($estado);
 }
 
-// Función para obtener todos los formularios de contacto
-function getContactForms($link) {
-    $sql = "SELECT * FROM contactos ORDER BY fecha DESC";
+// Obtener los filtros de la URL
+$asunto_filtro = isset($_GET['asunto']) ? $_GET['asunto'] : '';
+$estado_filtro = isset($_GET['estado']) ? $_GET['estado'] : '';
+$orden_fecha = isset($_GET['orden_fecha']) ? $_GET['orden_fecha'] : '';
+
+// Función para obtener todos los formularios de contacto con filtros
+function getContactForms($link, $asunto_filtro, $estado_filtro, $orden_fecha) {
+    $sql = "SELECT * FROM contactos WHERE 1=1";
+    
+    // Aplicar filtro de asunto
+    if (!empty($asunto_filtro)) {
+        $sql .= " AND asunto = '" . mysqli_real_escape_string($link, $asunto_filtro) . "'";
+    }
+    
+    // Aplicar filtro de estado
+    if (!empty($estado_filtro)) {
+        $sql .= " AND estado = '" . mysqli_real_escape_string($link, $estado_filtro) . "'";
+    }
+    
+    // Aplicar orden por fecha
+    if (!empty($orden_fecha)) {
+        $sql .= " ORDER BY fecha " . ($orden_fecha == 'asc' ? 'ASC' : 'DESC');
+    } else {
+        $sql .= " ORDER BY fecha DESC"; // Por defecto, más reciente primero
+    }
+    
     $result = mysqli_query($link, $sql);
     return mysqli_fetch_all($result, MYSQLI_ASSOC);
 }
@@ -28,6 +51,17 @@ function updateContactForm($link, $id, $status, $notes) {
     $stmt = mysqli_prepare($link, $sql);
     mysqli_stmt_bind_param($stmt, "ssi", $status, $notes, $id);
     return mysqli_stmt_execute($stmt);
+}
+
+// Función para obtener asuntos únicos para el filtro
+function getUniqueSubjects($link) {
+    $sql = "SELECT DISTINCT asunto FROM contactos ORDER BY asunto";
+    $result = mysqli_query($link, $sql);
+    $subjects = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $subjects[] = $row['asunto'];
+    }
+    return $subjects;
 }
 
 $message = '';
@@ -45,8 +79,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_form'])) {
     }
 }
 
-// Obtener todos los formularios de contacto
-$contactForms = getContactForms($link);
+// Obtener asuntos únicos para el filtro
+$uniqueSubjects = getUniqueSubjects($link);
+
+// Obtener todos los formularios de contacto con filtros aplicados
+$contactForms = getContactForms($link, $asunto_filtro, $estado_filtro, $orden_fecha);
 ?>
 
 <!DOCTYPE html>
@@ -108,6 +145,42 @@ $contactForms = getContactForms($link);
             background-color: #198754 !important; /* Verde para resuelto */
             color: #fff !important;
         }
+        /* Estilos para los filtros */
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 0;
+            font-weight: bold;
+        }
+        .section-filters {
+            background-color: #f0f2f5;
+            padding: 15px;
+            border-radius: 0 0 10px 10px;
+            margin-bottom: 20px;
+        }
+        .filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .filter-form select,
+        .filter-form button {
+            margin-right: 10px;
+        }
+        @media (max-width: 768px) {
+            .filter-form {
+                flex-direction: column;
+            }
+            .filter-form select,
+            .filter-form button {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -135,89 +208,129 @@ $contactForms = getContactForms($link);
     </nav>
 
     <div class="container mt-4">
-        <div class="content">
-            <h1 class="mb-4">Gestión de Formularios de Contacto</h1>
-
-            <?php if (!empty($message)): ?>
-                <div class="alert alert-success" role="alert">
-                    <?php echo $message; ?>
-                </div>
-            <?php endif; ?>
-
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Email</th>
-                        <th>Asunto</th>
-                        <th>Fecha</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($contactForms as $form): ?>
-                        <tr>
-                            <td><?php echo $form['id']; ?></td>
-                            <td><?php echo htmlspecialchars($form['nombre']); ?></td>
-                            <td><?php echo htmlspecialchars($form['email']); ?></td>
-                            <td><?php echo htmlspecialchars($form['asunto']); ?></td>
-                            <td><?php echo $form['fecha']; ?></td>
-                            <td>
-                                <?php 
-                                $badgeClass = '';
-                                if ($form['estado'] == 'Resuelto') {
-                                    $badgeClass = 'bg-resuelto';
-                                } elseif ($form['estado'] == 'En proceso') {
-                                    $badgeClass = 'bg-en-proceso';
-                                } else {
-                                    $badgeClass = 'bg-pendiente';
-                                }
-                                ?>
-                                <span class="badge <?php echo $badgeClass; ?>">
-                                    <?php echo formatearEstado($form['estado']); ?>
-                                </span>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal<?php echo $form['id']; ?>">
-                                    Editar
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Modal de Edición -->
-                        <div class="modal fade" id="editModal<?php echo $form['id']; ?>" tabindex="-1" aria-labelledby="editModalLabel<?php echo $form['id']; ?>" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="editModalLabel<?php echo $form['id']; ?>">Editar Formulario de Contacto</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                                            <input type="hidden" name="id" value="<?php echo $form['id']; ?>">
-                                            <div class="mb-3">
-                                                <label for="status" class="form-label">Estado</label>
-                                                <select class="form-select" id="status" name="status" required>
-                                                    <option value="Pendiente" <?php echo $form['estado'] == 'Pendiente' ? 'selected' : ''; ?>>Pendiente</option>
-                                                    <option value="En proceso" <?php echo $form['estado'] == 'En proceso' ? 'selected' : ''; ?>>En proceso</option>
-                                                    <option value="Resuelto" <?php echo $form['estado'] == 'Resuelto' ? 'selected' : ''; ?>>Resuelto</option>
-                                                </select>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="notes" class="form-label">Notas</label>
-                                                <textarea class="form-control" id="notes" name="notes" rows="3"><?php echo htmlspecialchars($form['notas']); ?></textarea>
-                                            </div>
-                                            <button type="submit" name="update_form" class="btn btn-primary">Guardar cambios</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+        <!-- Título de la sección -->
+        <div class="section-header">
+            <i class="fas fa-envelope me-2"></i>Formularios de Contacto
+        </div>
+        
+        <!-- Filtros -->
+        <div class="section-filters">
+            <form action="" method="GET" class="filter-form">
+                <select name="asunto" class="form-select">
+                    <option value="">Todos los asuntos</option>
+                    <?php foreach ($uniqueSubjects as $subject): ?>
+                        <option value="<?php echo htmlspecialchars($subject); ?>" <?php echo $asunto_filtro == $subject ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($subject); ?>
+                        </option>
                     <?php endforeach; ?>
-                </tbody>
-            </table>
+                </select>
+                
+                <select name="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="Pendiente" <?php echo $estado_filtro == 'Pendiente' ? 'selected' : ''; ?>>Pendiente</option>
+                    <option value="En proceso" <?php echo $estado_filtro == 'En proceso' ? 'selected' : ''; ?>>En proceso</option>
+                    <option value="Resuelto" <?php echo $estado_filtro == 'Resuelto' ? 'selected' : ''; ?>>Resuelto</option>
+                </select>
+                
+                <select name="orden_fecha" class="form-select">
+                    <option value="">Ordenar por fecha</option>
+                    <option value="desc" <?php echo $orden_fecha == 'desc' ? 'selected' : ''; ?>>Más reciente primero</option>
+                    <option value="asc" <?php echo $orden_fecha == 'asc' ? 'selected' : ''; ?>>Más antiguo primero</option>
+                </select>
+                
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </form>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <?php if (!empty($message)): ?>
+                    <div class="alert alert-success" role="alert">
+                        <?php echo $message; ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (count($contactForms) > 0): ?>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Asunto</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($contactForms as $form): ?>
+                                    <tr>
+                                        <td><?php echo $form['id']; ?></td>
+                                        <td><?php echo htmlspecialchars($form['nombre']); ?></td>
+                                        <td><?php echo htmlspecialchars($form['email']); ?></td>
+                                        <td><?php echo htmlspecialchars($form['asunto']); ?></td>
+                                        <td><?php echo $form['fecha']; ?></td>
+                                        <td>
+                                            <?php 
+                                            $badgeClass = '';
+                                            if ($form['estado'] == 'Resuelto') {
+                                                $badgeClass = 'bg-resuelto';
+                                            } elseif ($form['estado'] == 'En proceso') {
+                                                $badgeClass = 'bg-en-proceso';
+                                            } else {
+                                                $badgeClass = 'bg-pendiente';
+                                            }
+                                            ?>
+                                            <span class="badge <?php echo $badgeClass; ?>">
+                                                <?php echo formatearEstado($form['estado']); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal<?php echo $form['id']; ?>">
+                                                Editar
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Modal de Edición -->
+                                    <div class="modal fade" id="editModal<?php echo $form['id']; ?>" tabindex="-1" aria-labelledby="editModalLabel<?php echo $form['id']; ?>" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="editModalLabel<?php echo $form['id']; ?>">Editar Formulario de Contacto</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                                                        <input type="hidden" name="id" value="<?php echo $form['id']; ?>">
+                                                        <div class="mb-3">
+                                                            <label for="status" class="form-label">Estado</label>
+                                                            <select class="form-select" id="status" name="status" required>
+                                                                <option value="Pendiente" <?php echo $form['estado'] == 'Pendiente' ? 'selected' : ''; ?>>Pendiente</option>
+                                                                <option value="En proceso" <?php echo $form['estado'] == 'En proceso' ? 'selected' : ''; ?>>En proceso</option>
+                                                                <option value="Resuelto" <?php echo $form['estado'] == 'Resuelto' ? 'selected' : ''; ?>>Resuelto</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="notes" class="form-label">Notas</label>
+                                                            <textarea class="form-control" id="notes" name="notes" rows="3"><?php echo htmlspecialchars($form['notas']); ?></textarea>
+                                                        </div>
+                                                        <button type="submit" name="update_form" class="btn btn-primary">Guardar cambios</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <p class="text-center">No hay formularios de contacto disponibles.</p>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 

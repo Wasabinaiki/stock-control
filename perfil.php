@@ -71,6 +71,8 @@ mysqli_close($link);
         .profile-info h3 {
             color: #764ba2;
             margin-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 10px;
         }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -78,6 +80,22 @@ mysqli_close($link);
         }
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .device-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .device-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .device-list li:last-child {
+            border-bottom: none;
+        }
+        .device-icon {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
         }
     </style>
 </head>
@@ -106,25 +124,51 @@ mysqli_close($link);
     <div class="container mt-5">
         <div class="wrapper">
             <h2 class="mb-4"><i class="fas fa-user me-2"></i>Perfil de Usuario</h2>
+            
             <div class="profile-info">
-                <h3>Información Personal</h3>
-                <p><strong>Nombre:</strong> <?php echo htmlspecialchars($row["nombre"] . " " . $row["apellido"]); ?></p>
-                <p><strong>ID - Usuario:</strong> <?php echo htmlspecialchars($row["id_usuario"]); ?></p>
-                <p><strong>Correo:</strong> <?php echo htmlspecialchars($row["email"]); ?></p>
-                <p><strong>Teléfono:</strong> <?php echo htmlspecialchars($row["telefono"]); ?></p>
-                <p><strong>Área:</strong> <?php echo htmlspecialchars($row["area"]); ?></p>
+                <h3><i class="fas fa-id-card me-2"></i>Información Personal</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Nombre:</strong> <?php echo htmlspecialchars($row["nombre"] . " " . $row["apellido"]); ?></p>
+                        <p><strong>Usuario:</strong> <?php echo htmlspecialchars($row["username"]); ?></p>
+                        <p><strong>Correo:</strong> <?php echo htmlspecialchars($row["email"]); ?></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Teléfono:</strong> <?php echo !empty($row["telefono"]) ? htmlspecialchars($row["telefono"]) : "No especificado"; ?></p>
+                        <p><strong>Área:</strong> <?php echo !empty($row["area"]) ? htmlspecialchars($row["area"]) : "No especificada"; ?></p>
+                    </div>
+                </div>
             </div>
+            
             <div class="profile-info">
-                <h3>Dispositivos Asignados</h3>
-                <ul>
+                <h3><i class="fas fa-laptop me-2"></i>Dispositivos Asignados</h3>
+                <ul class="device-list">
                     <?php
-                    while($device = mysqli_fetch_array($result_devices)){
-                        echo "<li>" . ucfirst($device['tipo']) . ": " . $device['count'] . "</li>";
+                    $has_devices = false;
+                    $device_icons = [
+                        'computadora' => 'fas fa-desktop',
+                        'tablet' => 'fas fa-tablet-alt',
+                        'celular' => 'fas fa-mobile-alt'
+                    ];
+                    
+                    if (mysqli_num_rows($result_devices) > 0) {
+                        $has_devices = true;
+                        while($device = mysqli_fetch_array($result_devices)){
+                            $icon_class = isset($device_icons[strtolower($device['tipo'])]) ? $device_icons[strtolower($device['tipo'])] : 'fas fa-hdd';
+                            echo "<li><span class='device-icon'><i class='" . $icon_class . "'></i></span> " . ucfirst($device['tipo']) . ": " . $device['count'] . "</li>";
+                        }
+                    }
+                    
+                    if (!$has_devices) {
+                        echo "<li>No hay dispositivos asignados</li>";
                     }
                     ?>
                 </ul>
             </div>
-            <a href="editar_perfil.php" class="btn btn-primary"><i class="fas fa-edit me-2"></i>Editar Perfil</a>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="editar_perfil.php" class="btn btn-primary"><i class="fas fa-edit me-2"></i>Editar Perfil</a>
+            </div>
         </div>
     </div>
 

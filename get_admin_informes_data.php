@@ -3,6 +3,9 @@ session_start();
 require_once "includes/config.php";
 header('Content-Type: application/json');
 
+// Verificar desde dónde se incluye este archivo
+echo json_encode(['included_from' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)]);
+
 // Verificar si el usuario ha iniciado sesión y es administrador
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION["rol"] !== "administrador") {
     echo json_encode(['error' => 'No autorizado']);
@@ -49,14 +52,12 @@ try {
     foreach ($estados as $estado) {
         if ($periodo === 'ALL') {
             $sql = "SELECT COUNT(*) as total FROM mantenimientos WHERE estado = ?";
-            $stmt = mysqli_prepare($link, $sql);
-            mysqli_stmt_bind_param($stmt, "s", $estado);
         } else {
             $sql = "SELECT COUNT(*) as total FROM mantenimientos WHERE estado = ? AND fecha_programada >= DATE_SUB(CURDATE(), INTERVAL 1 $periodo)";
-            $stmt = mysqli_prepare($link, $sql);
-            mysqli_stmt_bind_param($stmt, "s", $estado);
         }
         
+        $stmt = mysqli_prepare($link, $sql);
+        mysqli_stmt_bind_param($stmt, "s", $estado);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         $row = mysqli_fetch_assoc($result);
@@ -109,14 +110,7 @@ try {
     $sql_pqrs_base .= " GROUP BY tipo, estado";
     $result_pqrs = mysqli_query($link, $sql_pqrs_base);
     
-    $pqrs_data = [
-        'peticion' => ['Pendiente' => 0, 'En proceso' => 0, 'Resuelto' => 0],
-        'queja' => ['Pendiente' => 0, 'En proceso' => 0, 'Resuelto' => 0],
-        'reclamo' => ['Pendiente' => 0, 'en  => ['Pendiente' => 0, 'En proceso' => 0, 'Resuelto' => 0],
-        'reclamo' => ['Pendiente' => 0, 'En proceso' => 0, 'Resuelto' => 0],
-        'sugerencia' => ['Pendiente' => 0, 'En proceso' => 0, 'Resuelto' => 0]
-    ];
-    
+    $pqrs_data = [];
     while ($row = mysqli_fetch_assoc($result_pqrs)) {
         $pqrs_data[$row['tipo']][$row['estado']] = $row['total'];
     }
@@ -130,18 +124,7 @@ try {
     $tiempo_promedio = round($row_tiempo['promedio'] ?? 0);
 
     // Devolver los datos como JSON
-    echo json_encode([
-        'total_usuarios' => $total_usuarios,
-        'dispositivos_total' => $dispositivos_total,
-        'dispositivos_periodo' => $dispositivos_periodo,
-        'mantenimientos' => $mantenimientos_data,
-        'tipos_dispositivos' => $tipos_data,
-        'usuarios_dispositivos' => $usuarios_dispositivos,
-        'usuarios_mantenimientos' => $usuarios_mantenimientos,
-        'pqrs_data' => $pqrs_data,
-        'tiempo_promedio' => $tiempo_promedio
-    ]);
-
+    echo json_encode(compact('total_usuarios', 'dispositivos_total', 'dispositivos_periodo', 'mantenimientos_data', 'tipos_data', 'usuarios_dispositivos', 'usuarios_mantenimientos', 'pqrs_data', 'tiempo_promedio'));
 } catch (Exception $e) {
     echo json_encode(['error' => $e->getMessage()]);
 }

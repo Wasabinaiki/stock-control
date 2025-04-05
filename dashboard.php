@@ -32,6 +32,7 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -43,29 +44,38 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             background-color: #f8f9fa;
             overflow-x: hidden;
         }
+
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             z-index: 1030;
         }
-        .navbar-brand, .nav-link {
+
+        .navbar-brand,
+        .nav-link {
             color: white !important;
         }
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
         }
+
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+
         .welcome-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .welcome-card .card-title, .welcome-card .card-text {
+
+        .welcome-card .card-title,
+        .welcome-card .card-text {
             color: white;
         }
+
         /* Sidebar styles - con scroll */
         .sidebar {
             position: fixed;
@@ -78,44 +88,59 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             background-color: #f8f9fa;
             transition: all 0.3s;
             width: 250px;
-            overflow-y: auto; /* Añadir scroll vertical */
-            scrollbar-width: thin; /* Para Firefox */
-            scrollbar-color: #764ba2 #f8f9fa; /* Para Firefox */
+            overflow-y: auto;
+            /* Añadir scroll vertical */
+            scrollbar-width: thin;
+            /* Para Firefox */
+            scrollbar-color: #764ba2 #f8f9fa;
+            /* Para Firefox */
         }
+
         /* Estilo para la barra de desplazamiento en Chrome, Edge, Safari */
         .sidebar::-webkit-scrollbar {
             width: 6px;
         }
+
         .sidebar::-webkit-scrollbar-track {
             background: #f8f9fa;
         }
+
         .sidebar::-webkit-scrollbar-thumb {
             background-color: #764ba2;
             border-radius: 6px;
         }
+
         .sidebar-collapsed {
             margin-left: -250px;
         }
+
         .sidebar .nav-link {
-            color: #000 !important; /* Manteniendo tu solución */
+            color: #000 !important;
+            /* Manteniendo tu solución */
             font-weight: 500;
             padding: 0.75rem 1rem;
             border-radius: 0;
             transition: all 0.2s;
         }
-        
+
         .sidebar .nav-link:hover {
             background-color: rgba(118, 75, 162, 0.1);
-            color: #000; /* Mantener el texto negro al pasar el cursor */
+            color: #000;
+            /* Mantener el texto negro al pasar el cursor */
         }
+
         .sidebar .nav-link.active {
             background-color: rgba(118, 75, 162, 0.2);
-            color: #764ba2; /* Color destacado para el enlace activo */
+            color: #764ba2;
+            /* Color destacado para el enlace activo */
         }
+
         .sidebar .nav-link i {
             margin-right: 10px;
-            color: #764ba2; /* Mantener el color de los íconos */
+            color: #764ba2;
+            /* Mantener el color de los íconos */
         }
+
         .sidebar-heading {
             font-size: 0.85rem;
             text-transform: uppercase;
@@ -123,14 +148,17 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             color: #764ba2;
             font-weight: bold;
         }
+
         .main-content {
             margin-left: 250px;
             padding: 20px;
             transition: all 0.3s;
         }
+
         .main-content-expanded {
             margin-left: 0;
         }
+
         .toggle-sidebar {
             position: fixed;
             left: 250px;
@@ -143,9 +171,11 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             z-index: 99;
             transition: all 0.3s;
         }
+
         .toggle-sidebar.collapsed {
             left: 0;
         }
+
         .feature-card {
             border: none;
             border-radius: 10px;
@@ -153,14 +183,17 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             height: 100%;
             transition: transform 0.3s ease;
         }
+
         .feature-card:hover {
             transform: translateY(-5px);
         }
+
         .feature-icon {
             font-size: 3rem;
             color: #764ba2;
             margin-bottom: 1rem;
         }
+
         /* Estilos para actividades recientes */
         .activity-item {
             padding: 10px 15px;
@@ -170,41 +203,51 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             border-radius: 0 5px 5px 0;
             transition: all 0.3s ease;
         }
+
         .activity-item:hover {
             background-color: #e9ecef;
             transform: translateX(5px);
         }
+
         .activity-date {
             font-size: 0.8rem;
             color: #6c757d;
         }
+
         .activity-icon {
             margin-right: 10px;
             color: #764ba2;
         }
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .sidebar {
                 margin-left: -250px;
             }
+
             .sidebar-collapsed {
                 margin-left: 0;
             }
+
             .main-content {
                 margin-left: 0;
             }
+
             .main-content-expanded {
                 margin-left: 250px;
             }
+
             .toggle-sidebar {
                 left: 0;
             }
+
             .toggle-sidebar.collapsed {
                 left: 250px;
             }
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
@@ -213,6 +256,14 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <?php if ($is_admin): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="admin_dashboard.php"><i class="fas fa-user-shield me-2"></i>Dashboard
+                                Administrador</a>
+                        </li>
+                    <?php endif; ?>
+                </ul>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="perfil.php"><i class="fas fa-user me-2"></i>Perfil</a>
@@ -275,11 +326,6 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="configuracion.php">
-                    <i class="fas fa-cog"></i> Configuración
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link" href="faq.php">
                     <i class="fas fa-question-circle"></i> Preguntas Frecuentes
                 </a>
@@ -314,19 +360,14 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             </li>
         </ul>
         <?php if ($is_admin): ?>
-        <div class="sidebar-heading">Administración</div>
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link" href="bodega.php">
-                    <i class="fas fa-warehouse"></i> Bodega
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="admin_dashboard.php">
-                    <i class="fas fa-user-shield"></i> Panel de Administración
-                </a>
-            </li>
-        </ul>
+            <div class="sidebar-heading">Administración</div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="admin_dashboard.php">
+                        <i class="fas fa-user-shield"></i> Panel de Administración
+                    </a>
+                </li>
+            </ul>
         <?php endif; ?>
         <!-- Espacio adicional al final para asegurar que los últimos elementos sean accesibles -->
         <div style="height: 20px;"></div>
@@ -344,8 +385,10 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                     <h2 class="card-title mb-3">Bienvenido, <?php echo htmlspecialchars($_SESSION["username"]); ?></h2>
                     <h5 class="card-subtitle mb-3">Panel de Control de Dispositivos</h5>
                     <p class="card-text">
-                        Bienvenido a tu panel de control personalizado. Desde aquí podrás gestionar todos tus dispositivos, 
-                        incluyendo computadoras, tablets y celulares. Además, tendrás acceso a informes, reportes, facturas y 
+                        Bienvenido a tu panel de control personalizado. Desde aquí podrás gestionar todos tus
+                        dispositivos,
+                        incluyendo computadoras, tablets y celulares. Además, tendrás acceso a informes, reportes,
+                        facturas y
                         mucho más. Utiliza el menú lateral para navegar por las diferentes funcionalidades del sistema.
                     </p>
                 </div>
@@ -358,8 +401,10 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                         <div class="card-body text-center">
                             <i class="fas fa-sync-alt feature-icon"></i>
                             <h5 class="card-title">Gestión Simplificada</h5>
-                            <p class="card-text">Administra todos tus dispositivos desde una única plataforma intuitiva y fácil de usar.</p>
-                            <a href="dispositivos.php?tipo=computadora" class="btn btn-primary mt-3">Ver Dispositivos</a>
+                            <p class="card-text">Administra todos tus dispositivos desde una única plataforma intuitiva
+                                y fácil de usar.</p>
+                            <a href="dispositivos.php?tipo=computadora" class="btn btn-primary mt-3">Ver
+                                Dispositivos</a>
                         </div>
                     </div>
                 </div>
@@ -368,7 +413,8 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                         <div class="card-body text-center">
                             <i class="fas fa-tools feature-icon"></i>
                             <h5 class="card-title">Mantenimientos</h5>
-                            <p class="card-text">Programa y gestiona mantenimientos para tus dispositivos de forma sencilla.</p>
+                            <p class="card-text">Programa y gestiona mantenimientos para tus dispositivos de forma
+                                sencilla.</p>
                             <a href="mantenimientos.php" class="btn btn-primary mt-3">Ver Mantenimientos</a>
                         </div>
                     </div>
@@ -378,7 +424,8 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                         <div class="card-body text-center">
                             <i class="fas fa-chart-line feature-icon"></i>
                             <h5 class="card-title">Informes Detallados</h5>
-                            <p class="card-text">Accede a informes y estadísticas detalladas sobre el estado y rendimiento de tus dispositivos.</p>
+                            <p class="card-text">Accede a informes y estadísticas detalladas sobre el estado y
+                                rendimiento de tus dispositivos.</p>
                             <a href="informes.php" class="btn btn-primary mt-3">Ver Informes</a>
                         </div>
                     </div>
@@ -391,7 +438,7 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                     <?php if (mysqli_num_rows($result_actividades) > 0): ?>
                         <?php while ($actividad = mysqli_fetch_assoc($result_actividades)): ?>
                             <div class="activity-item">
-                                <?php 
+                                <?php
                                 $icon = '';
                                 switch ($actividad['tipo']) {
                                     case 'PQRS':
@@ -428,7 +475,7 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Toggle sidebar functionality
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
             const toggleBtn = document.getElementById('toggleSidebar');
@@ -442,7 +489,7 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                 toggleIcon.classList.remove('fa-chevron-left');
                 toggleIcon.classList.add('fa-chevron-right');
             }
-            toggleBtn.addEventListener('click', function() {
+            toggleBtn.addEventListener('click', function () {
                 sidebar.classList.toggle('sidebar-collapsed');
                 mainContent.classList.toggle('main-content-expanded');
                 toggleBtn.classList.toggle('collapsed');
@@ -479,5 +526,5 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
         });
     </script>
 </body>
-</html>
 
+</html>

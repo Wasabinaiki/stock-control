@@ -9,80 +9,160 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION
 }
 
 // Función para registrar errores
-function logError($message) {
+function logError($message)
+{
     error_log(date('[Y-m-d H:i:s] ') . $message . "\n", 3, 'error_log.txt');
 }
 
 // Función para formatear el estado
-function formatearEstado($estado) {
+function formatearEstado($estado)
+{
     // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
     $estado = strtolower(str_replace('_', ' ', $estado));
     // Capitalizar la primera letra de cada palabra
     return ucwords($estado);
 }
 
-// Filtrar mantenimientos por estado si se proporciona
+// FILTROS PARA MANTENIMIENTOS
 $estado_mantenimiento = isset($_GET['estado_mantenimiento']) ? $_GET['estado_mantenimiento'] : '';
+$orden_fecha_mantenimiento = isset($_GET['orden_fecha_mantenimiento']) ? $_GET['orden_fecha_mantenimiento'] : '';
+
+// FILTROS PARA DISPOSITIVOS
+$tipo_dispositivo = isset($_GET['tipo_dispositivo']) ? $_GET['tipo_dispositivo'] : '';
+$orden_fecha_entrega = isset($_GET['orden_fecha_entrega']) ? $_GET['orden_fecha_entrega'] : '';
+
+// FILTROS PARA PQRS
+$tipo_pqr = isset($_GET['tipo_pqr']) ? $_GET['tipo_pqr'] : '';
+$estado_pqr = isset($_GET['estado_pqr']) ? $_GET['estado_pqr'] : '';
+$orden_fecha_pqr = isset($_GET['orden_fecha_pqr']) ? $_GET['orden_fecha_pqr'] : '';
+
+// FILTROS PARA CONTACTOS
+$asunto_contacto = isset($_GET['asunto_contacto']) ? $_GET['asunto_contacto'] : '';
+$estado_contacto = isset($_GET['estado_contacto']) ? $_GET['estado_contacto'] : '';
+$orden_fecha_contacto = isset($_GET['orden_fecha_contacto']) ? $_GET['orden_fecha_contacto'] : '';
+
+// FILTROS PARA BODEGA
+$estado_bodega = isset($_GET['estado_bodega']) ? $_GET['estado_bodega'] : '';
 
 // Obtener todos los mantenimientos con información de dispositivos y usuarios
 $sql = "SELECT m.id, m.id_dispositivo, m.fecha_programada, m.descripcion, m.estado, 
                d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
         FROM mantenimientos m 
         JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
-        JOIN usuarios u ON d.id_usuario = u.id_usuario";
+        JOIN usuarios u ON d.id_usuario = u.id_usuario
+        WHERE 1=1";
 
 // Aplicar filtro si se seleccionó un estado
 if ($estado_mantenimiento) {
-    $sql .= " WHERE m.estado = '" . mysqli_real_escape_string($link, $estado_mantenimiento) . "'";
+    $sql .= " AND m.estado = '" . mysqli_real_escape_string($link, $estado_mantenimiento) . "'";
 }
 
-$sql .= " ORDER BY m.fecha_programada DESC";
+// Ordenar por fecha si se especifica
+if (!empty($orden_fecha_mantenimiento)) {
+    $sql .= " ORDER BY m.fecha_programada " . ($orden_fecha_mantenimiento == 'asc' ? 'ASC' : 'DESC');
+} else {
+    $sql .= " ORDER BY m.fecha_programada DESC";
+}
 
 $result = mysqli_query($link, $sql);
 if (!$result) {
     logError("Error en la consulta de mantenimientos: " . mysqli_error($link));
 }
 
-// Obtener todos los dispositivos
+// Obtener todos los dispositivos con filtros
 $sql_dispositivos = "SELECT d.*, u.username FROM dispositivos d 
                     JOIN usuarios u ON d.id_usuario = u.id_usuario 
-                    ORDER BY d.fecha_entrega DESC";
+                    WHERE 1=1";
+
+if (!empty($tipo_dispositivo)) {
+    $sql_dispositivos .= " AND d.tipo = '" . mysqli_real_escape_string($link, $tipo_dispositivo) . "'";
+}
+
+// Ordenar por fecha de entrega si se especifica
+if (!empty($orden_fecha_entrega)) {
+    $sql_dispositivos .= " ORDER BY d.fecha_entrega " . ($orden_fecha_entrega == 'asc' ? 'ASC' : 'DESC');
+} else {
+    $sql_dispositivos .= " ORDER BY d.fecha_entrega DESC";
+}
+
 $result_dispositivos = mysqli_query($link, $sql_dispositivos);
 if (!$result_dispositivos) {
     logError("Error en la consulta de dispositivos: " . mysqli_error($link));
 }
 
-// NUEVA SECCIÓN: Obtener todos los PQRs
+// NUEVA SECCIÓN: Obtener todos los PQRs con filtros
 $sql_pqrs = "SELECT p.*, u.username 
             FROM pqrs p 
             JOIN usuarios u ON p.id_usuario = u.id_usuario 
-            ORDER BY p.fecha_creacion DESC";
+            WHERE 1=1";
+
+if (!empty($tipo_pqr)) {
+    $sql_pqrs .= " AND p.tipo = '" . mysqli_real_escape_string($link, $tipo_pqr) . "'";
+}
+
+if (!empty($estado_pqr)) {
+    $sql_pqrs .= " AND p.estado = '" . mysqli_real_escape_string($link, $estado_pqr) . "'";
+}
+
+// Ordenar por fecha si se especifica
+if (!empty($orden_fecha_pqr)) {
+    $sql_pqrs .= " ORDER BY p.fecha_creacion " . ($orden_fecha_pqr == 'asc' ? 'ASC' : 'DESC');
+} else {
+    $sql_pqrs .= " ORDER BY p.fecha_creacion DESC";
+}
+
 $result_pqrs = mysqli_query($link, $sql_pqrs);
 if (!$result_pqrs) {
     logError("Error en la consulta de PQRs: " . mysqli_error($link));
 }
 
-// NUEVA SECCIÓN: Obtener todos los formularios de contacto
-$sql_contactos = "SELECT c.* FROM contactos c ORDER BY c.fecha DESC";
+// NUEVA SECCIÓN: Obtener todos los formularios de contacto con filtros
+$sql_contactos = "SELECT c.* FROM contactos c WHERE 1=1";
+
+if (!empty($asunto_contacto)) {
+    $sql_contactos .= " AND c.asunto = '" . mysqli_real_escape_string($link, $asunto_contacto) . "'";
+}
+
+if (!empty($estado_contacto)) {
+    $sql_contactos .= " AND c.estado = '" . mysqli_real_escape_string($link, $estado_contacto) . "'";
+}
+
+// Ordenar por fecha si se especifica
+if (!empty($orden_fecha_contacto)) {
+    $sql_contactos .= " ORDER BY c.fecha " . ($orden_fecha_contacto == 'asc' ? 'ASC' : 'DESC');
+} else {
+    $sql_contactos .= " ORDER BY c.fecha DESC";
+}
+
 $result_contactos = mysqli_query($link, $sql_contactos);
 if (!$result_contactos) {
     logError("Error en la consulta de contactos: " . mysqli_error($link));
 }
 
-// NUEVA SECCIÓN: Obtener todos los dispositivos en Bodega (como sustituto de bodega)
-$sql_envios = "SELECT e.*, d.marca, d.modelo, d.tipo, u.username 
-              FROM envios e
-              JOIN dispositivos d ON e.usuario_id = d.id_usuario
-              JOIN usuarios u ON e.usuario_id = u.id_usuario
-              ORDER BY e.fecha_envio DESC";
-$result_envios = mysqli_query($link, $sql_envios);
-if (!$result_envios) {
-    logError("Error en la consulta de envíos: " . mysqli_error($link));
+// NUEVA SECCIÓN: Obtener todos los dispositivos en Bodega
+// Corregimos la consulta para mostrar los dispositivos en bodega correctamente
+$sql_bodega = "SELECT d.id_dispositivo, d.tipo, d.marca, d.modelo, d.estado, u.username 
+              FROM dispositivos d
+              JOIN usuarios u ON d.id_usuario = u.id_usuario
+              WHERE 1=1";
+
+// Aplicamos el filtro de estado si existe
+if (!empty($estado_bodega)) {
+    $sql_bodega .= " AND d.estado = '" . mysqli_real_escape_string($link, $estado_bodega) . "'";
+}
+// SOLUCIÓN: Eliminamos el else para que no aplique filtro por defecto
+
+$sql_bodega .= " ORDER BY d.id_dispositivo";
+
+$result_bodega = mysqli_query($link, $sql_bodega);
+if (!$result_bodega) {
+    logError("Error en la consulta de dispositivos en bodega: " . mysqli_error($link));
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -93,48 +173,89 @@ if (!$result_envios) {
         body {
             background-color: #f8f9fa;
         }
+
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .navbar-brand, .nav-link {
+
+        .navbar-brand,
+        .nav-link {
             color: white !important;
         }
+
         .card {
             border: none;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
+
         .card-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             font-weight: bold;
             border-radius: 10px 10px 0 0 !important;
         }
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
         }
+
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+
         .dashboard-link {
             color: white !important;
             border-radius: 5px;
             padding: 8px 15px !important;
             margin-right: 10px;
         }
+
         .filter-form {
             display: flex;
-            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-bottom: 15px;
         }
-        .filter-form select {
-            max-width: 200px;
+
+        .filter-form select,
+        .filter-form button {
             margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .filter-form {
+                flex-direction: column;
+            }
+
+            .filter-form select,
+            .filter-form button {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 0;
+            font-weight: bold;
+        }
+
+        .section-filters {
+            background-color: #f0f2f5;
+            padding: 15px;
+            border-radius: 0 0 10px 10px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
@@ -161,23 +282,51 @@ if (!$result_envios) {
 
     <div class="container mt-4">
         <h2 class="mb-4">Gestión de Reportes</h2>
-        
+
         <!-- Mantenimientos Programados con filtro por estado -->
-        <div class="card mt-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Mantenimientos Programados</h5>
-                <form action="" method="GET" class="filter-form">
-                    <select name="estado_mantenimiento" class="form-select">
-                        <option value="">Todos los estados</option>
-                        <option value="completado" <?php echo $estado_mantenimiento == 'completado' ? 'selected' : ''; ?>>Completado</option>
-                        <option value="en_proceso" <?php echo $estado_mantenimiento == 'en_proceso' ? 'selected' : ''; ?>>En proceso</option>
-                        <option value="programado" <?php echo $estado_mantenimiento == 'programado' ? 'selected' : ''; ?>>Programado</option>
-                    </select>
-                    <button type="submit" class="btn btn-primary">Filtrar</button>
-                </form>
-            </div>
+        <div class="section-header">
+            <i class="fas fa-tools me-2"></i>Mantenimientos Programados
+        </div>
+        <div class="section-filters">
+            <form action="" method="GET" class="filter-form">
+                <!-- Mantener otros filtros ocultos -->
+                <input type="hidden" name="tipo_dispositivo" value="<?php echo htmlspecialchars($tipo_dispositivo); ?>">
+                <input type="hidden" name="orden_fecha_entrega"
+                    value="<?php echo htmlspecialchars($orden_fecha_entrega); ?>">
+                <input type="hidden" name="tipo_pqr" value="<?php echo htmlspecialchars($tipo_pqr); ?>">
+                <input type="hidden" name="estado_pqr" value="<?php echo htmlspecialchars($estado_pqr); ?>">
+                <input type="hidden" name="orden_fecha_pqr" value="<?php echo htmlspecialchars($orden_fecha_pqr); ?>">
+                <input type="hidden" name="asunto_contacto" value="<?php echo htmlspecialchars($asunto_contacto); ?>">
+                <input type="hidden" name="estado_contacto" value="<?php echo htmlspecialchars($estado_contacto); ?>">
+                <input type="hidden" name="orden_fecha_contacto"
+                    value="<?php echo htmlspecialchars($orden_fecha_contacto); ?>">
+                <input type="hidden" name="estado_bodega" value="<?php echo htmlspecialchars($estado_bodega); ?>">
+
+                <select name="estado_mantenimiento" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="completado" <?php echo $estado_mantenimiento == 'completado' ? 'selected' : ''; ?>>
+                        Completado</option>
+                    <option value="en_proceso" <?php echo $estado_mantenimiento == 'en_proceso' ? 'selected' : ''; ?>>En
+                        proceso</option>
+                    <option value="programado" <?php echo $estado_mantenimiento == 'programado' ? 'selected' : ''; ?>>
+                        Programado</option>
+                </select>
+
+                <select name="orden_fecha_mantenimiento" class="form-select">
+                    <option value="">Ordenar por fecha</option>
+                    <option value="desc" <?php echo $orden_fecha_mantenimiento == 'desc' ? 'selected' : ''; ?>>Más
+                        reciente primero</option>
+                    <option value="asc" <?php echo $orden_fecha_mantenimiento == 'asc' ? 'selected' : ''; ?>>Más antiguo
+                        primero</option>
+                </select>
+
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </form>
+        </div>
+
+        <div class="card mb-4">
             <div class="card-body">
-                <?php if (mysqli_num_rows($result) > 0): ?>
+                <?php if ($result && mysqli_num_rows($result) > 0): ?>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
@@ -199,14 +348,14 @@ if (!$result_envios) {
                                         <td><?php echo htmlspecialchars($row['tipo_dispositivo']); ?></td>
                                         <td><?php echo htmlspecialchars($row['fecha_programada']); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php 
-                                                if ($row['estado'] == 'completado') {
-                                                    echo 'success';
-                                                } elseif ($row['estado'] == 'en_proceso') {
-                                                    echo 'warning';
-                                                } else {
-                                                    echo 'info';
-                                                }
+                                            <span class="badge bg-<?php
+                                            if ($row['estado'] == 'completado') {
+                                                echo 'success';
+                                            } elseif ($row['estado'] == 'en_proceso') {
+                                                echo 'warning';
+                                            } else {
+                                                echo 'info';
+                                            }
                                             ?>">
                                                 <?php echo formatearEstado($row['estado']); ?>
                                             </span>
@@ -221,12 +370,49 @@ if (!$result_envios) {
                 <?php endif; ?>
             </div>
         </div>
-        
+
         <!-- Dispositivos Registrados -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">Dispositivos Registrados</h5>
-            </div>
+        <div class="section-header">
+            <i class="fas fa-laptop me-2"></i>Dispositivos Registrados
+        </div>
+        <div class="section-filters">
+            <form action="" method="GET" class="filter-form">
+                <!-- Mantener otros filtros ocultos -->
+                <input type="hidden" name="estado_mantenimiento"
+                    value="<?php echo htmlspecialchars($estado_mantenimiento); ?>">
+                <input type="hidden" name="orden_fecha_mantenimiento"
+                    value="<?php echo htmlspecialchars($orden_fecha_mantenimiento); ?>">
+                <input type="hidden" name="tipo_pqr" value="<?php echo htmlspecialchars($tipo_pqr); ?>">
+                <input type="hidden" name="estado_pqr" value="<?php echo htmlspecialchars($estado_pqr); ?>">
+                <input type="hidden" name="orden_fecha_pqr" value="<?php echo htmlspecialchars($orden_fecha_pqr); ?>">
+                <input type="hidden" name="asunto_contacto" value="<?php echo htmlspecialchars($asunto_contacto); ?>">
+                <input type="hidden" name="estado_contacto" value="<?php echo htmlspecialchars($estado_contacto); ?>">
+                <input type="hidden" name="orden_fecha_contacto"
+                    value="<?php echo htmlspecialchars($orden_fecha_contacto); ?>">
+                <input type="hidden" name="estado_bodega" value="<?php echo htmlspecialchars($estado_bodega); ?>">
+
+                <select name="tipo_dispositivo" class="form-select">
+                    <option value="">Todos los tipos</option>
+                    <option value="computadora" <?php echo $tipo_dispositivo == 'computadora' ? 'selected' : ''; ?>>
+                        Computadora</option>
+                    <option value="tablet" <?php echo $tipo_dispositivo == 'tablet' ? 'selected' : ''; ?>>Tablet</option>
+                    <option value="celular" <?php echo $tipo_dispositivo == 'celular' ? 'selected' : ''; ?>>Celular
+                    </option>
+                </select>
+
+                <select name="orden_fecha_entrega" class="form-select">
+                    <option value="">Ordenar por fecha</option>
+                    <option value="desc" <?php echo $orden_fecha_entrega == 'desc' ? 'selected' : ''; ?>>Más reciente
+                        primero</option>
+                    <option value="asc" <?php echo $orden_fecha_entrega == 'asc' ? 'selected' : ''; ?>>Más antiguo primero
+                    </option>
+                </select>
+
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </form>
+        </div>
+
+        <div class="card mb-4">
             <div class="card-body">
                 <?php if ($result_dispositivos && mysqli_num_rows($result_dispositivos) > 0): ?>
                     <div class="table-responsive">
@@ -238,7 +424,6 @@ if (!$result_envios) {
                                     <th>Tipo</th>
                                     <th>Marca/Modelo</th>
                                     <th>Fecha de Entrega</th>
-                                    <th>Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -249,11 +434,6 @@ if (!$result_envios) {
                                         <td><?php echo htmlspecialchars($row['tipo']); ?></td>
                                         <td><?php echo htmlspecialchars($row['marca'] . ' ' . $row['modelo']); ?></td>
                                         <td><?php echo htmlspecialchars($row['fecha_entrega']); ?></td>
-                                        <td>
-                                            <span class="badge bg-<?php echo $row['estado'] == 'Activo' ? 'success' : 'warning'; ?>">
-                                                <?php echo htmlspecialchars($row['estado']); ?>
-                                            </span>
-                                        </td>
                                     </tr>
                                 <?php endwhile; ?>
                             </tbody>
@@ -266,10 +446,56 @@ if (!$result_envios) {
         </div>
 
         <!-- NUEVA SECCIÓN: PQRs Registrados -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">PQRs Registrados</h5>
-            </div>
+        <div class="section-header">
+            <i class="fas fa-question-circle me-2"></i>PQRs Registrados
+        </div>
+        <div class="section-filters">
+            <form action="" method="GET" class="filter-form">
+                <!-- Mantener otros filtros ocultos -->
+                <input type="hidden" name="estado_mantenimiento"
+                    value="<?php echo htmlspecialchars($estado_mantenimiento); ?>">
+                <input type="hidden" name="orden_fecha_mantenimiento"
+                    value="<?php echo htmlspecialchars($orden_fecha_mantenimiento); ?>">
+                <input type="hidden" name="tipo_dispositivo" value="<?php echo htmlspecialchars($tipo_dispositivo); ?>">
+                <input type="hidden" name="orden_fecha_entrega"
+                    value="<?php echo htmlspecialchars($orden_fecha_entrega); ?>">
+                <input type="hidden" name="asunto_contacto" value="<?php echo htmlspecialchars($asunto_contacto); ?>">
+                <input type="hidden" name="estado_contacto" value="<?php echo htmlspecialchars($estado_contacto); ?>">
+                <input type="hidden" name="orden_fecha_contacto"
+                    value="<?php echo htmlspecialchars($orden_fecha_contacto); ?>">
+                <input type="hidden" name="estado_bodega" value="<?php echo htmlspecialchars($estado_bodega); ?>">
+
+                <select name="tipo_pqr" class="form-select">
+                    <option value="">Todos los tipos</option>
+                    <option value="peticion" <?php echo $tipo_pqr == 'peticion' ? 'selected' : ''; ?>>Petición</option>
+                    <option value="queja" <?php echo $tipo_pqr == 'queja' ? 'selected' : ''; ?>>Queja</option>
+                    <option value="reclamo" <?php echo $tipo_pqr == 'reclamo' ? 'selected' : ''; ?>>Reclamo</option>
+                    <option value="sugerencia" <?php echo $tipo_pqr == 'sugerencia' ? 'selected' : ''; ?>>Sugerencia
+                    </option>
+                </select>
+
+                <select name="estado_pqr" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente" <?php echo $estado_pqr == 'pendiente' ? 'selected' : ''; ?>>Pendiente
+                    </option>
+                    <option value="en_proceso" <?php echo $estado_pqr == 'en_proceso' ? 'selected' : ''; ?>>En proceso
+                    </option>
+                    <option value="resuelto" <?php echo $estado_pqr == 'resuelto' ? 'selected' : ''; ?>>Resuelto</option>
+                </select>
+
+                <select name="orden_fecha_pqr" class="form-select">
+                    <option value="">Ordenar por fecha</option>
+                    <option value="desc" <?php echo $orden_fecha_pqr == 'desc' ? 'selected' : ''; ?>>Más reciente primero
+                    </option>
+                    <option value="asc" <?php echo $orden_fecha_pqr == 'asc' ? 'selected' : ''; ?>>Más antiguo primero
+                    </option>
+                </select>
+
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </form>
+        </div>
+
+        <div class="card mb-4">
             <div class="card-body">
                 <?php if ($result_pqrs && mysqli_num_rows($result_pqrs) > 0): ?>
                     <div class="table-responsive">
@@ -290,17 +516,18 @@ if (!$result_envios) {
                                         <td><?php echo htmlspecialchars($row['id']); ?></td>
                                         <td><?php echo htmlspecialchars($row['username']); ?></td>
                                         <td><?php echo htmlspecialchars($row['tipo']); ?></td>
-                                        <td><?php echo htmlspecialchars(substr($row['descripcion'], 0, 50)) . (strlen($row['descripcion']) > 50 ? '...' : ''); ?></td>
+                                        <td><?php echo htmlspecialchars(substr($row['descripcion'], 0, 50)) . (strlen($row['descripcion']) > 50 ? '...' : ''); ?>
+                                        </td>
                                         <td><?php echo htmlspecialchars($row['fecha_creacion']); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php 
-                                                if ($row['estado'] == 'resuelto') {
-                                                    echo 'success';
-                                                } elseif ($row['estado'] == 'en_proceso' || $row['estado'] == 'en proceso') {
-                                                    echo 'warning';
-                                                } else {
-                                                    echo 'info';
-                                                }
+                                            <span class="badge bg-<?php
+                                            if ($row['estado'] == 'resuelto') {
+                                                echo 'success';
+                                            } elseif ($row['estado'] == 'en_proceso' || $row['estado'] == 'en proceso') {
+                                                echo 'warning';
+                                            } else {
+                                                echo 'info';
+                                            }
                                             ?>">
                                                 <?php echo formatearEstado($row['estado'] ? $row['estado'] : 'pendiente'); ?>
                                             </span>
@@ -317,10 +544,55 @@ if (!$result_envios) {
         </div>
 
         <!-- NUEVA SECCIÓN: Formularios de Contacto -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">Formularios de Contacto</h5>
-            </div>
+        <div class="section-header">
+            <i class="fas fa-envelope me-2"></i>Formularios de Contacto
+        </div>
+        <div class="section-filters">
+            <form action="" method="GET" class="filter-form">
+                <!-- Mantener otros filtros ocultos -->
+                <input type="hidden" name="estado_mantenimiento"
+                    value="<?php echo htmlspecialchars($estado_mantenimiento); ?>">
+                <input type="hidden" name="orden_fecha_mantenimiento"
+                    value="<?php echo htmlspecialchars($orden_fecha_mantenimiento); ?>">
+                <input type="hidden" name="tipo_dispositivo" value="<?php echo htmlspecialchars($tipo_dispositivo); ?>">
+                <input type="hidden" name="orden_fecha_entrega"
+                    value="<?php echo htmlspecialchars($orden_fecha_entrega); ?>">
+                <input type="hidden" name="tipo_pqr" value="<?php echo htmlspecialchars($tipo_pqr); ?>">
+                <input type="hidden" name="estado_pqr" value="<?php echo htmlspecialchars($estado_pqr); ?>">
+                <input type="hidden" name="orden_fecha_pqr" value="<?php echo htmlspecialchars($orden_fecha_pqr); ?>">
+                <input type="hidden" name="estado_bodega" value="<?php echo htmlspecialchars($estado_bodega); ?>">
+
+                <select name="asunto_contacto" class="form-select">
+                    <option value="">Todos los asuntos</option>
+                    <option value="soporte" <?php echo $asunto_contacto == 'soporte' ? 'selected' : ''; ?>>Soporte
+                    </option>
+                    <option value="quejas" <?php echo $asunto_contacto == 'quejas' ? 'selected' : ''; ?>>Quejas</option>
+                    <option value="otros" <?php echo $asunto_contacto == 'otros' ? 'selected' : ''; ?>>Otros</option>
+                </select>
+
+                <select name="estado_contacto" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="Pendiente" <?php echo $estado_contacto == 'Pendiente' ? 'selected' : ''; ?>>Pendiente
+                    </option>
+                    <option value="En proceso" <?php echo $estado_contacto == 'En proceso' ? 'selected' : ''; ?>>En
+                        proceso</option>
+                    <option value="Resuelto" <?php echo $estado_contacto == 'Resuelto' ? 'selected' : ''; ?>>Resuelto
+                    </option>
+                </select>
+
+                <select name="orden_fecha_contacto" class="form-select">
+                    <option value="">Ordenar por fecha</option>
+                    <option value="desc" <?php echo $orden_fecha_contacto == 'desc' ? 'selected' : ''; ?>>Más reciente
+                        primero</option>
+                    <option value="asc" <?php echo $orden_fecha_contacto == 'asc' ? 'selected' : ''; ?>>Más antiguo
+                        primero</option>
+                </select>
+
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </form>
+        </div>
+
+        <div class="card mb-4">
             <div class="card-body">
                 <?php if ($result_contactos && mysqli_num_rows($result_contactos) > 0): ?>
                     <div class="table-responsive">
@@ -344,14 +616,14 @@ if (!$result_envios) {
                                         <td><?php echo htmlspecialchars($row['asunto']); ?></td>
                                         <td><?php echo htmlspecialchars($row['fecha']); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php 
-                                                if ($row['estado'] == 'Resuelto') {
-                                                    echo 'success';
-                                                } elseif ($row['estado'] == 'En proceso') {
-                                                    echo 'warning';
-                                                } else {
-                                                    echo 'info';
-                                                }
+                                            <span class="badge bg-<?php
+                                            if ($row['estado'] == 'Resuelto') {
+                                                echo 'success';
+                                            } elseif ($row['estado'] == 'En proceso') {
+                                                echo 'warning';
+                                            } else {
+                                                echo 'info';
+                                            }
                                             ?>">
                                                 <?php echo formatearEstado($row['estado']); ?>
                                             </span>
@@ -367,36 +639,77 @@ if (!$result_envios) {
             </div>
         </div>
 
-        <!-- NUEVA SECCIÓN: Dispositivos en Bodega (sustituto de bodega) -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">Dispositivos en Bodega</h5>
-            </div>
+        <!-- NUEVA SECCIÓN: Dispositivos en Bodega -->
+        <div class="section-header">
+            <i class="fas fa-warehouse me-2"></i>Dispositivos en Bodega
+        </div>
+        <div class="section-filters">
+            <form action="" method="GET" class="filter-form">
+                <!-- Mantener otros filtros ocultos -->
+                <input type="hidden" name="estado_mantenimiento"
+                    value="<?php echo htmlspecialchars($estado_mantenimiento); ?>">
+                <input type="hidden" name="orden_fecha_mantenimiento"
+                    value="<?php echo htmlspecialchars($orden_fecha_mantenimiento); ?>">
+                <input type="hidden" name="tipo_dispositivo" value="<?php echo htmlspecialchars($tipo_dispositivo); ?>">
+                <input type="hidden" name="orden_fecha_entrega"
+                    value="<?php echo htmlspecialchars($orden_fecha_entrega); ?>">
+                <input type="hidden" name="tipo_pqr" value="<?php echo htmlspecialchars($tipo_pqr); ?>">
+                <input type="hidden" name="estado_pqr" value="<?php echo htmlspecialchars($estado_pqr); ?>">
+                <input type="hidden" name="orden_fecha_pqr" value="<?php echo htmlspecialchars($orden_fecha_pqr); ?>">
+                <input type="hidden" name="asunto_contacto" value="<?php echo htmlspecialchars($asunto_contacto); ?>">
+                <input type="hidden" name="estado_contacto" value="<?php echo htmlspecialchars($estado_contacto); ?>">
+                <input type="hidden" name="orden_fecha_contacto"
+                    value="<?php echo htmlspecialchars($orden_fecha_contacto); ?>">
+
+                <select name="estado_bodega" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="Activo" <?php echo $estado_bodega == 'Activo' ? 'selected' : ''; ?>>Activo</option>
+                    <option value="Inactivo" <?php echo $estado_bodega == 'Inactivo' ? 'selected' : ''; ?>>Inactivo
+                    </option>
+                    <option value="En Reparación" <?php echo $estado_bodega == 'En Reparación' ? 'selected' : ''; ?>>En
+                        Reparación</option>
+                    <option value="Completado" <?php echo $estado_bodega == 'Completado' ? 'selected' : ''; ?>>Completado
+                    </option>
+                </select>
+
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </form>
+        </div>
+
+        <div class="card mb-4">
             <div class="card-body">
-                <?php if ($result_envios && mysqli_num_rows($result_envios) > 0): ?>
+                <?php if ($result_bodega && mysqli_num_rows($result_bodega) > 0): ?>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>ID</th>
                                     <th>Usuario</th>
-                                    <th>Destino</th>
-                                    <th>Fecha de Envío</th>
-                                    <th>Fecha de Salida</th>
+                                    <th>Tipo</th>
+                                    <th>Marca</th>
+                                    <th>Modelo</th>
                                     <th>Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php while ($row = mysqli_fetch_assoc($result_envios)): ?>
+                                <?php while ($row = mysqli_fetch_assoc($result_bodega)): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($row['id_envio']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['id_dispositivo']); ?></td>
                                         <td><?php echo htmlspecialchars($row['username']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['direccion_destino']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['fecha_envio']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['fecha_salida']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['tipo']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['marca']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['modelo']); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php echo $row['estado_envio'] == 'Completado' ? 'success' : 'warning'; ?>">
-                                                <?php echo formatearEstado($row['estado_envio']); ?>
+                                            <span class="badge bg-<?php
+                                            if ($row['estado'] == 'Completado' || $row['estado'] == 'Activo') {
+                                                echo 'success';
+                                            } elseif ($row['estado'] == 'En Reparación') {
+                                                echo 'warning';
+                                            } else {
+                                                echo 'danger';
+                                            }
+                                            ?>">
+                                                <?php echo formatearEstado($row['estado']); ?>
                                             </span>
                                         </td>
                                     </tr>
@@ -413,6 +726,7 @@ if (!$result_envios) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
 
 <?php

@@ -82,19 +82,19 @@ mysqli_stmt_bind_param($stmt_contactos, "s", $usuario['email']);
 mysqli_stmt_execute($stmt_contactos);
 $result_contactos = mysqli_stmt_get_result($stmt_contactos);
 
-// NUEVA SECCIÓN: Obtener dispositivos del usuario en envíos (como sustituto de bodega)
-$sql_envios = "SELECT e.*, d.marca, d.modelo, d.tipo 
-              FROM envios e
-              INNER JOIN dispositivos d ON e.usuario_id = d.id_usuario
-              WHERE e.usuario_id = ? AND e.estado_envio = 'En Proceso'
-              ORDER BY e.fecha_envio DESC";
-$stmt_envios = mysqli_prepare($link, $sql_envios);
-mysqli_stmt_bind_param($stmt_envios, "i", $id_usuario);
-mysqli_stmt_execute($stmt_envios);
-$result_envios = mysqli_stmt_get_result($stmt_envios);
+// NUEVA SECCIÓN: Obtener todos los dispositivos del usuario en bodega sin filtrar por estado
+$sql_bodega = "SELECT d.* 
+              FROM dispositivos d 
+              WHERE d.id_usuario = ?
+              ORDER BY d.fecha_entrega DESC";
+$stmt_bodega = mysqli_prepare($link, $sql_bodega);
+mysqli_stmt_bind_param($stmt_bodega, "i", $id_usuario);
+mysqli_stmt_execute($stmt_bodega);
+$result_bodega = mysqli_stmt_get_result($stmt_bodega);
 
 // Función para formatear el estado
-function formatearEstado($estado) {
+function formatearEstado($estado)
+{
     // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
     $estado = strtolower(str_replace('_', ' ', $estado));
     // Capitalizar la primera letra de cada palabra
@@ -104,6 +104,7 @@ function formatearEstado($estado) {
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -114,78 +115,115 @@ function formatearEstado($estado) {
         body {
             background-color: #f8f9fa;
         }
+
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .navbar-brand, .nav-link {
+
+        .navbar-brand,
+        .nav-link {
             color: white !important;
         }
+
         .card {
             border: none;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
+
         .card-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             font-weight: bold;
             border-radius: 10px 10px 0 0 !important;
         }
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
         }
+
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+
         .stats-card {
             text-align: center;
             padding: 15px;
         }
+
         .stats-card .number {
             font-size: 2rem;
             font-weight: bold;
             margin-bottom: 5px;
             color: #667eea;
         }
+
         .stats-card .label {
             font-size: 0.9rem;
             color: #6c757d;
         }
+
         /* Estados estandarizados */
-        .estado-pendiente, .badge-pendiente {
-            color: #ffc107 !important; /* Amarillo para pendiente */
+        .estado-pendiente,
+        .badge-pendiente {
+            color: #ffc107 !important;
+            /* Amarillo para pendiente */
             font-weight: bold;
         }
-        .estado-en-proceso, .badge-en-proceso {
-            color: #0d6efd !important; /* Azul para en proceso */
+
+        .estado-en-proceso,
+        .badge-en-proceso {
+            color: #0d6efd !important;
+            /* Azul para en proceso */
             font-weight: bold;
         }
-        .estado-resuelto, .estado-completado, .badge-resuelto, .badge-completado {
-            color: #198754 !important; /* Verde para resuelto/completado */
+
+        .estado-resuelto,
+        .estado-completado,
+        .badge-resuelto,
+        .badge-completado {
+            color: #198754 !important;
+            /* Verde para resuelto/completado */
             font-weight: bold;
         }
+
         /* Estilo para los badges */
         .badge {
             padding: 6px 10px;
             border-radius: 12px;
             font-weight: 500;
         }
+
         .bg-pendiente {
-            background-color: #ffc107 !important; /* Amarillo */
+            background-color: #ffc107 !important;
+            /* Amarillo */
             color: #000 !important;
         }
+
         .bg-en-proceso {
-            background-color: #0d6efd !important; /* Azul */
+            background-color: #0d6efd !important;
+            /* Azul */
             color: #fff !important;
         }
-        .bg-resuelto, .bg-completado {
-            background-color: #198754 !important; /* Verde */
+
+        .bg-resuelto,
+        .bg-completado {
+            background-color: #198754 !important;
+            /* Verde */
+            color: #fff !important;
+        }
+
+        .bg-inactivo,
+        .bg-cancelado {
+            background-color: #dc3545 !important;
+            /* Rojo */
             color: #fff !important;
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
@@ -210,7 +248,7 @@ function formatearEstado($estado) {
 
     <div class="container mt-4">
         <h2 class="mb-4">Mis Reportes de Dispositivos</h2>
-        
+
         <div class="row">
             <!-- Información Personal -->
             <div class="col-md-6">
@@ -219,13 +257,14 @@ function formatearEstado($estado) {
                         <h5 class="mb-0">Información Personal</h5>
                     </div>
                     <div class="card-body">
-                        <p><strong>Nombre:</strong> <?php echo htmlspecialchars($usuario['nombre'] . ' ' . $usuario['apellido']); ?></p>
+                        <p><strong>Nombre:</strong>
+                            <?php echo htmlspecialchars($usuario['nombre'] . ' ' . $usuario['apellido']); ?></p>
                         <p><strong>Email:</strong> <?php echo htmlspecialchars($usuario['email']); ?></p>
                         <p><strong>Teléfono:</strong> <?php echo htmlspecialchars($usuario['telefono']); ?></p>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Estadísticas de Mantenimiento -->
             <div class="col-md-6">
                 <div class="card">
@@ -290,15 +329,18 @@ function formatearEstado($estado) {
                                         <td><?php echo htmlspecialchars($row['modelo']); ?></td>
                                         <td><?php echo htmlspecialchars($row['fecha_entrega']); ?></td>
                                         <td>
-                                            <?php 
+                                            <?php
                                             $estadoClass = 'badge-pendiente'; // por defecto
                                             if (strtolower($row['estado']) == 'activo' || strtolower($row['estado']) == 'completado') {
                                                 $estadoClass = 'badge-completado';
                                             } elseif (strtolower($row['estado']) == 'en proceso') {
                                                 $estadoClass = 'badge-en-proceso';
+                                            } elseif (strtolower($row['estado']) == 'inactivo') {
+                                                $estadoClass = 'bg-inactivo'; // Cambiado para usar el estilo rojo para Inactivo
                                             }
                                             ?>
-                                            <span class="badge bg-<?php echo str_replace('badge-', '', $estadoClass); ?>">
+                                            <span
+                                                class="badge <?php echo (strpos($estadoClass, 'bg-') === 0) ? $estadoClass : 'bg-' . str_replace('badge-', '', $estadoClass); ?>">
                                                 <?php echo formatearEstado($row['estado']); ?>
                                             </span>
                                         </td>
@@ -336,13 +378,14 @@ function formatearEstado($estado) {
                                     <tr>
                                         <td><?php echo htmlspecialchars($row['marca'] . ' ' . $row['modelo']); ?></td>
                                         <td><?php echo htmlspecialchars($row['tipo_dispositivo']); ?></td>
-                                        <td><?php echo htmlspecialchars(substr($row['descripcion'], 0, 50)) . (strlen($row['descripcion']) > 50 ? '...' : ''); ?></td>
+                                        <td><?php echo htmlspecialchars(substr($row['descripcion'], 0, 50)) . (strlen($row['descripcion']) > 50 ? '...' : ''); ?>
+                                        </td>
                                         <td><?php echo htmlspecialchars($row['fecha_programada']); ?></td>
                                         <td>
-                                            <?php 
+                                            <?php
                                             $estado = strtolower($row['estado']);
                                             $badgeClass = '';
-                                            
+
                                             if ($estado == 'completado') {
                                                 $badgeClass = 'bg-completado';
                                             } elseif ($estado == 'en_proceso' || $estado == 'en proceso') {
@@ -389,13 +432,14 @@ function formatearEstado($estado) {
                                     <tr>
                                         <td><?php echo htmlspecialchars($row['id']); ?></td>
                                         <td><?php echo htmlspecialchars($row['tipo']); ?></td>
-                                        <td><?php echo htmlspecialchars(substr($row['descripcion'], 0, 50)) . (strlen($row['descripcion']) > 50 ? '...' : ''); ?></td>
+                                        <td><?php echo htmlspecialchars(substr($row['descripcion'], 0, 50)) . (strlen($row['descripcion']) > 50 ? '...' : ''); ?>
+                                        </td>
                                         <td><?php echo htmlspecialchars($row['fecha_creacion']); ?></td>
                                         <td>
-                                            <?php 
+                                            <?php
                                             $estado = strtolower($row['estado'] ?: 'pendiente');
                                             $badgeClass = '';
-                                            
+
                                             if ($estado == 'resuelto') {
                                                 $badgeClass = 'bg-resuelto';
                                             } elseif ($estado == 'en_proceso' || $estado == 'en proceso') {
@@ -442,13 +486,14 @@ function formatearEstado($estado) {
                                     <tr>
                                         <td><?php echo htmlspecialchars($row['id']); ?></td>
                                         <td><?php echo htmlspecialchars($row['asunto']); ?></td>
-                                        <td><?php echo htmlspecialchars(substr($row['mensaje'], 0, 50)) . (strlen($row['mensaje']) > 50 ? '...' : ''); ?></td>
+                                        <td><?php echo htmlspecialchars(substr($row['mensaje'], 0, 50)) . (strlen($row['mensaje']) > 50 ? '...' : ''); ?>
+                                        </td>
                                         <td><?php echo htmlspecialchars($row['fecha']); ?></td>
                                         <td>
-                                            <?php 
+                                            <?php
                                             $estado = strtolower($row['estado']);
                                             $badgeClass = '';
-                                            
+
                                             if ($estado == 'resuelto') {
                                                 $badgeClass = 'bg-resuelto';
                                             } elseif ($estado == 'en proceso') {
@@ -472,44 +517,50 @@ function formatearEstado($estado) {
             </div>
         </div>
 
-        <!-- Dispositivos en Envío (sustituto de bodega) -->
+        <!-- Dispositivos en Bodega -->
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">Mis Dispositivos en Bodega</h5>
             </div>
             <div class="card-body">
-                <?php if (mysqli_num_rows($result_envios) > 0): ?>
+                <?php if (mysqli_num_rows($result_bodega) > 0): ?>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>ID Envío</th>
-                                    <th>Destino</th>
-                                    <th>Fecha de Envío</th>
-                                    <th>Fecha de Salida</th>
+                                    <th>ID</th>
+                                    <th>Tipo</th>
+                                    <th>Marca</th>
+                                    <th>Modelo</th>
+                                    <th>Fecha de Entrega</th>
                                     <th>Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php while ($row = mysqli_fetch_assoc($result_envios)): ?>
+                                <?php while ($row = mysqli_fetch_assoc($result_bodega)): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($row['id_envio']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['direccion_destino']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['fecha_envio']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['fecha_salida']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['id_dispositivo']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['tipo']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['marca']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['modelo']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['fecha_entrega']); ?></td>
                                         <td>
-                                            <?php 
-                                            $estado = $row['estado_envio'];
+                                            <?php
+                                            $estado = strtolower($row['estado']);
                                             $badgeClass = '';
-                                            
-                                            if ($estado == 'Completado') {
+
+                                            if ($estado == 'inactivo') {
+                                                $badgeClass = 'bg-inactivo';
+                                            } elseif ($estado == 'completado' || $estado == 'activo') {
                                                 $badgeClass = 'bg-completado';
-                                            } else {
+                                            } elseif ($estado == 'en_proceso' || $estado == 'en proceso') {
                                                 $badgeClass = 'bg-en-proceso';
+                                            } else {
+                                                $badgeClass = 'bg-pendiente';
                                             }
                                             ?>
                                             <span class="badge <?php echo $badgeClass; ?>">
-                                                <?php echo formatearEstado($row['estado_envio']); ?>
+                                                <?php echo formatearEstado($row['estado']); ?>
                                             </span>
                                         </td>
                                     </tr>
@@ -526,6 +577,7 @@ function formatearEstado($estado) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
 
 <?php
@@ -536,6 +588,6 @@ mysqli_stmt_close($stmt_stats);
 mysqli_stmt_close($stmt_mantenimientos);
 mysqli_stmt_close($stmt_pqrs);
 mysqli_stmt_close($stmt_contactos);
-mysqli_stmt_close($stmt_envios);
+mysqli_stmt_close($stmt_bodega);
 mysqli_close($link);
 ?>
