@@ -5,11 +5,9 @@ $username = $password = $confirm_password = $email = "";
 $username_err = $password_err = $confirm_password_err = $email_err = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Validar nombre de usuario
     if (empty(trim($_POST["username"]))) {
         $username_err = "Por favor ingrese un nombre de usuario.";
     } else {
-        // Preparar una declaración select
         $sql = "SELECT id_usuario FROM usuarios WHERE username = ?";
 
         if ($stmt = mysqli_prepare($link, $sql)) {
@@ -33,7 +31,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Validar contraseña
     if (empty(trim($_POST["password"]))) {
         $password_err = "Por favor ingrese una contraseña.";
     } elseif (strlen(trim($_POST["password"])) < 6) {
@@ -42,7 +39,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $password = trim($_POST["password"]);
     }
 
-    // Validar confirmación de contraseña
     if (empty(trim($_POST["confirm_password"]))) {
         $confirm_password_err = "Por favor confirme la contraseña.";
     } else {
@@ -52,11 +48,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Validar email
     if (empty(trim($_POST["email"]))) {
         $email_err = "Por favor ingrese un correo electrónico.";
     } else {
-        // Verificar si el email ya existe
         $sql = "SELECT id_usuario FROM usuarios WHERE email = ?";
 
         if ($stmt = mysqli_prepare($link, $sql)) {
@@ -80,35 +74,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Verificar los errores de entrada antes de insertar en la base de datos
     if (empty($username_err) && empty($password_err) && empty($confirm_password_err) && empty($email_err)) {
 
-        // Preparar una declaración de inserción
         $sql = "INSERT INTO usuarios (username, password, email, rol) VALUES (?, ?, ?, 'usuario')";
 
         if ($stmt = mysqli_prepare($link, $sql)) {
-            // Vincular variables a la declaración preparada como parámetros
             mysqli_stmt_bind_param($stmt, "sss", $param_username, $param_password, $param_email);
 
-            // Establecer parámetros
             $param_username = $username;
-            $param_password = password_hash($password, PASSWORD_DEFAULT); // Crea un hash de la contraseña
+            $param_password = password_hash($password, PASSWORD_DEFAULT);
             $param_email = $email;
 
-            // Intentar ejecutar la declaración preparada
             if (mysqli_stmt_execute($stmt)) {
-                // Redirigir a la página de inicio de sesión
                 header("location: login.php");
             } else {
                 echo "Algo salió mal. Por favor, inténtelo de nuevo más tarde.";
             }
 
-            // Cerrar declaración
             mysqli_stmt_close($stmt);
         }
     }
 
-    // Cerrar conexión
     mysqli_close($link);
 }
 ?>
@@ -167,7 +153,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-top-left-radius: 12px;
             border-bottom-left-radius: 12px;
             text-align: center;
-            /* Centrar contenido */
         }
 
         .info-container {
@@ -209,7 +194,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .form-group {
             position: relative;
             margin-bottom: 30px;
-            /* Espacio adicional para errores */
             width: 80%;
             margin-left: auto;
             margin-right: auto;
@@ -217,9 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .form-control {
             padding-left: 40px;
-            /* Espacio para los íconos */
             padding-right: 40px;
-            /* Espacio para el ícono de mostrar contraseña */
             height: 50px;
             font-size: 16px;
             border: 1px solid #ddd;
@@ -257,18 +239,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-size: 14px;
             color: red;
             min-height: 20px;
-            /* Espacio reservado para evitar saltos */
         }
 
-        /* Centrar el formulario */
         .form-container form {
             max-width: 400px;
-            /* Ancho máximo del formulario */
             margin: 0 auto;
-            /* Centrar horizontalmente */
         }
 
-        /* Mejorar espaciado */
         .form-group+.form-group {
             margin-top: 20px;
         }
@@ -281,9 +258,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 
 <body>
-    <!-- Contenedor principal -->
     <div class="container">
-        <!-- Formulario de registro -->
         <div class="form-container">
             <h2><i class="fas fa-user-plus me-2" style="margin-bottom: 8%; margin-top: 2%;"></i>Registro</h2>
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
@@ -332,7 +307,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </form>
         </div>
 
-        <!-- Información adicional -->
         <div class="info-container">
             <div class="logo">
                 <img src="Stock Control Logo Curved.png" alt="Logo StockControl">
@@ -344,10 +318,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 
-    <!-- Script para mostrar/ocultar contraseña -->
     <script>
         function togglePasswordVisibility(icon) {
-            // Obtener el campo de contraseña que está en el mismo contenedor que el icono
             const passwordInput = icon.closest('.form-group').querySelector('input[type="password"], input[type="text"]');
 
             if (passwordInput.type === 'password') {

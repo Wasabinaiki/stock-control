@@ -7,7 +7,6 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION
     exit;
 }
 
-// Mensajes de éxito y error
 $success_message = '';
 $error_message = '';
 
@@ -21,12 +20,10 @@ if (isset($_SESSION['error_message'])) {
     unset($_SESSION['error_message']);
 }
 
-// Filtros
 $estado_filtro = isset($_GET['estado_filtro']) ? $_GET['estado_filtro'] : '';
 $orden_fecha_salida = isset($_GET['orden_fecha_salida']) ? $_GET['orden_fecha_salida'] : '';
 $orden_fecha_llegada = isset($_GET['orden_fecha_llegada']) ? $_GET['orden_fecha_llegada'] : '';
 
-// Obtener lista de envíos con información de usuarios y filtros
 $sql = "SELECT e.*, u.username FROM envios e 
         JOIN usuarios u ON e.usuario_id = u.id_usuario 
         WHERE 1=1";
@@ -35,7 +32,6 @@ if (!empty($estado_filtro)) {
     $sql .= " AND e.estado_envio = '" . mysqli_real_escape_string($link, $estado_filtro) . "'";
 }
 
-// Ordenar por fecha de salida o llegada si se especifica
 if (!empty($orden_fecha_salida)) {
     $sql .= " ORDER BY e.fecha_salida " . ($orden_fecha_salida == 'asc' ? 'ASC' : 'DESC');
 } elseif (!empty($orden_fecha_llegada)) {
@@ -50,12 +46,9 @@ if (!$result) {
     die("Error en la consulta: " . mysqli_error($link));
 }
 
-// Función para formatear el estado
 function formatearEstado($estado)
 {
-    // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
     $estado = str_replace('_', ' ', $estado);
-    // Capitalizar la primera letra de cada palabra
     return ucwords($estado);
 }
 ?>
@@ -142,7 +135,6 @@ function formatearEstado($estado)
             background: linear-gradient(135deg, #0b8a45 0%, #20bf6b 100%);
         }
 
-        /* Estados estandarizados */
         .badge {
             padding: 6px 10px;
             border-radius: 12px;
@@ -152,13 +144,11 @@ function formatearEstado($estado)
         .bg-pendiente,
         .bg-en-proceso {
             background-color: #ffc107 !important;
-            /* Amarillo para en proceso */
             color: #000 !important;
         }
 
         .bg-completado {
             background-color: #198754 !important;
-            /* Verde para completado */
             color: #fff !important;
         }
 
@@ -222,7 +212,6 @@ function formatearEstado($estado)
 
     <div class="container">
         <?php
-        // Mostrar mensaje de éxito
         if (!empty($success_message)) {
             echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
             echo '<i class="fas fa-check-circle me-2"></i>' . htmlspecialchars($success_message);
@@ -230,7 +219,6 @@ function formatearEstado($estado)
             echo '</div>';
         }
 
-        // Mostrar mensaje de error
         if (!empty($error_message)) {
             echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
             echo '<i class="fas fa-exclamation-circle me-2"></i>' . htmlspecialchars($error_message);
@@ -244,7 +232,6 @@ function formatearEstado($estado)
                 <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Gestión de Envíos</h5>
             </div>
             <div class="card-body">
-                <!-- Filtros -->
                 <form action="" method="GET" class="filter-form">
                     <select name="estado_filtro" class="form-select">
                         <option value="">Todos los estados</option>
@@ -292,7 +279,6 @@ function formatearEstado($estado)
                                 while ($row = mysqli_fetch_assoc($result)) {
                                     $rowClass = ($row['estado_envio'] == 'Completado') ? 'completed' : '';
 
-                                    // Determinar la clase de badge según el estado
                                     $badgeClass = '';
                                     if (strtolower($row['estado_envio']) == 'completado') {
                                         $badgeClass = 'bg-completado';

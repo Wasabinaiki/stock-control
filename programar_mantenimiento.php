@@ -2,7 +2,6 @@
 session_start();
 require_once "includes/config.php";
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
@@ -12,7 +11,6 @@ $usuario_id = $_SESSION["id"];
 $mensaje = "";
 $error = "";
 
-// Obtener los dispositivos del usuario para el dropdown
 $sql_dispositivos = "SELECT id_dispositivo, tipo, marca, modelo FROM dispositivos WHERE id_usuario = ?";
 $stmt_dispositivos = mysqli_prepare($link, $sql_dispositivos);
 mysqli_stmt_bind_param($stmt_dispositivos, "i", $usuario_id);
@@ -20,13 +18,11 @@ mysqli_stmt_execute($stmt_dispositivos);
 $result_dispositivos = mysqli_stmt_get_result($stmt_dispositivos);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["confirmar_envio"]) && $_POST["confirmar_envio"] == "1") {
-    // Recoger datos del formulario
     $id_dispositivo = $_POST["id_dispositivo"];
     $descripcion = $_POST["descripcion"];
     $fecha_programada = $_POST["fecha_programada"];
     $direccion_recogida = $_POST["direccion_recogida"];
 
-    // Insertar en la tabla de mantenimientos
     $sql_mantenimiento = "INSERT INTO mantenimientos (id_dispositivo, fecha_programada, descripcion, estado) 
                          VALUES (?, ?, ?, 'programado')";
 
@@ -36,12 +32,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["confirmar_envio"]) && 
         if (mysqli_stmt_execute($stmt)) {
             $mantenimiento_id = mysqli_insert_id($link);
 
-            // Insertar en la tabla de envíos
             $sql_envio = "INSERT INTO envios (usuario_id, direccion_destino, estado_envio, fecha_envio, fecha_salida) 
                          VALUES (?, ?, 'En Proceso', CURDATE(), CURDATE())";
 
             if ($stmt_envio = mysqli_prepare($link, $sql_envio)) {
-                $direccion_destino = "Bodega Central"; // Dirección predeterminada de la bodega
+                $direccion_destino = "Bodega Central";
                 mysqli_stmt_bind_param($stmt_envio, "is", $usuario_id, $direccion_destino);
 
                 if (mysqli_stmt_execute($stmt_envio)) {
@@ -208,7 +203,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["confirmar_envio"]) && 
         </div>
     </div>
 
-    <!-- Modal de Confirmación -->
     <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -241,25 +235,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["confirmar_envio"]) && 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Botón para mostrar el modal
             document.getElementById('btnProgramar').addEventListener('click', function () {
-                // Verificar que el formulario sea válido
                 const form = document.getElementById('mantenimientoForm');
                 if (form.checkValidity()) {
-                    // Mostrar el modal
                     const modal = new bootstrap.Modal(document.getElementById('confirmacionModal'));
                     modal.show();
                 } else {
-                    // Forzar la validación del formulario
                     form.reportValidity();
                 }
             });
 
-            // Botón para confirmar y enviar el formulario
             document.getElementById('btnConfirmar').addEventListener('click', function () {
-                // Establecer el valor de confirmación
                 document.getElementById('confirmar_envio').value = "1";
-                // Enviar el formulario
                 document.getElementById('mantenimientoForm').submit();
             });
         });

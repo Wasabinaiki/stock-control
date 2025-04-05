@@ -14,7 +14,6 @@ if ($mantenimiento_id === 0) {
     exit;
 }
 
-// Obtener detalles del mantenimiento
 $sql = "SELECT m.*, d.marca, d.modelo, u.username 
         FROM mantenimientos m 
         JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
@@ -36,7 +35,6 @@ if ($stmt = mysqli_prepare($link, $sql)) {
     mysqli_stmt_close($stmt);
 }
 
-// Procesar el formulario de edición
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $new_fecha = $_POST["fecha_programada"];
     $new_descripcion = $_POST["descripcion"];
@@ -56,7 +54,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// Función para depurar valores
 function debug_to_console($data)
 {
     $output = $data;
@@ -66,7 +63,6 @@ function debug_to_console($data)
     echo "<script>console.log('Debug: " . addslashes($output) . "');</script>";
 }
 
-// Depurar el valor del estado
 debug_to_console("Estado actual: " . $mantenimiento['estado']);
 ?>
 

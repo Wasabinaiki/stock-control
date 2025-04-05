@@ -1,8 +1,6 @@
 <?php
-// ayuda.php
 session_start();
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;

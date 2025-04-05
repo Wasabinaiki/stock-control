@@ -2,13 +2,11 @@
 session_start();
 require_once "includes/config.php";
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
 
-// Verificar si id_usuario está definido en la sesión
 if (!isset($_SESSION["id"])) {
     header("location: error.php?mensaje=Sesión inválida");
     exit;
@@ -16,7 +14,6 @@ if (!isset($_SESSION["id"])) {
 
 $id_usuario = $_SESSION["id"];
 
-// Obtener información del usuario
 $sql_usuario = "SELECT * FROM usuarios WHERE id_usuario = ?";
 $stmt_usuario = mysqli_prepare($link, $sql_usuario);
 mysqli_stmt_bind_param($stmt_usuario, "i", $id_usuario);
@@ -24,14 +21,12 @@ mysqli_stmt_execute($stmt_usuario);
 $result_usuario = mysqli_stmt_get_result($stmt_usuario);
 $usuario = mysqli_fetch_assoc($result_usuario);
 
-// Obtener dispositivos del usuario
 $sql_dispositivos = "SELECT * FROM dispositivos WHERE id_usuario = ?";
 $stmt_dispositivos = mysqli_prepare($link, $sql_dispositivos);
 mysqli_stmt_bind_param($stmt_dispositivos, "i", $id_usuario);
 mysqli_stmt_execute($stmt_dispositivos);
 $result_dispositivos = mysqli_stmt_get_result($stmt_dispositivos);
 
-// Contar tipos de dispositivos para el nuevo gráfico
 $sql_tipos = "SELECT tipo, COUNT(*) as total FROM dispositivos WHERE id_usuario = ? GROUP BY tipo";
 $stmt_tipos = mysqli_prepare($link, $sql_tipos);
 mysqli_stmt_bind_param($stmt_tipos, "i", $id_usuario);
@@ -40,11 +35,10 @@ $result_tipos = mysqli_stmt_get_result($stmt_tipos);
 $tipos_labels = [];
 $tipos_data = [];
 while ($row = mysqli_fetch_assoc($result_tipos)) {
-    $tipos_labels[] = ucfirst($row['tipo']); // Capitalizar primera letra
+    $tipos_labels[] = ucfirst($row['tipo']);
     $tipos_data[] = $row['total'];
 }
 
-// Obtener mantenimientos del usuario
 $sql_mantenimientos = "SELECT m.*, d.tipo, d.marca, d.modelo 
                        FROM mantenimientos m 
                        JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo 
@@ -55,8 +49,8 @@ mysqli_stmt_bind_param($stmt_mantenimientos, "i", $id_usuario);
 mysqli_stmt_execute($stmt_mantenimientos);
 $result_mantenimientos = mysqli_stmt_get_result($stmt_mantenimientos);
 
-// Función para formatear el estado
-function formatearEstado($estado) {
+function formatearEstado($estado)
+{
     switch ($estado) {
         case 'programado':
             return 'Programado';
@@ -72,6 +66,7 @@ function formatearEstado($estado) {
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -84,80 +79,97 @@ function formatearEstado($estado) {
         body {
             background-color: #f8f9fa;
         }
+
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .navbar-brand, .nav-link {
+
+        .navbar-brand,
+        .nav-link {
             color: white !important;
         }
+
         .card {
             border: none;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
+
         .card-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             font-weight: bold;
             border-radius: 10px 10px 0 0 !important;
         }
+
         .btn-primary {
-            background: linear-gradient(135deg,rgb(234, 102, 102) 0%, #764ba2 100%);
+            background: linear-gradient(135deg, rgb(234, 102, 102) 0%, #764ba2 100%);
             border: none;
         }
+
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+
         .chart-container {
             position: relative;
             height: 250px;
             width: 100%;
         }
+
         .estado-programado {
             color: #ffc107;
             font-weight: bold;
         }
+
         .estado-en_proceso {
             color: #0d6efd;
             font-weight: bold;
         }
+
         .estado-completado {
             color: #198754;
             font-weight: bold;
         }
+
         .nav-tabs .nav-link {
-            color: #000000 !important; /* Cambiado a negro */
+            color: #000000 !important;
             font-weight: 500;
         }
+
         .nav-tabs .nav-link.active {
-            color: #000000 !important; /* Cambiado a negro */
+            color: #000000 !important;
             font-weight: bold;
             border-color: #667eea #667eea #fff;
         }
-        /* Cambiamos el color del texto en los encabezados de tabla */
+
         .table thead th {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333 !important; /* Cambiado a gris oscuro */
+            color: #333 !important;
             border: none;
             font-weight: bold;
         }
+
         .refresh-btn {
             cursor: pointer;
             transition: transform 0.3s ease;
         }
+
         .refresh-btn:hover {
             transform: rotate(180deg);
         }
-        /* Aseguramos que los íconos en las pestañas sean visibles */
+
         .nav-tabs .nav-link i {
-            color: #000000 !important; /* Cambiado a negro */
+            color: #000000 !important;
         }
+
         .nav-tabs .nav-link.active i {
-            color: #000000 !important; /* Cambiado a negro */
+            color: #000000 !important;
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
@@ -187,7 +199,7 @@ function formatearEstado($estado) {
                 <i class="fas fa-sync-alt fa-2x text-primary"></i>
             </span>
         </div>
-        
+
         <div class="row">
             <div class="col-md-6">
                 <div class="card">
@@ -200,7 +212,8 @@ function formatearEstado($estado) {
                         </div>
                         <div class="mt-3">
                             <p class="text-muted small">
-                                <strong>Nota:</strong> Este gráfico muestra la distribución de tus dispositivos por tipo.
+                                <strong>Nota:</strong> Este gráfico muestra la distribución de tus dispositivos por
+                                tipo.
                             </p>
                         </div>
                     </div>
@@ -217,12 +230,13 @@ function formatearEstado($estado) {
                         </div>
                         <div class="mt-3">
                             <p class="text-muted small">
-                                <strong>Nota:</strong> Este gráfico muestra el estado de los mantenimientos de tus dispositivos.
-                                <ul class="small">
-                                    <li><span class="estado-programado">Programado</span>: Mantenimiento agendado</li>
-                                    <li><span class="estado-en_proceso">En Proceso</span>: Mantenimiento en ejecución</li>
-                                    <li><span class="estado-completado">Completado</span>: Mantenimiento finalizado</li>
-                                </ul>
+                                <strong>Nota:</strong> Este gráfico muestra el estado de los mantenimientos de tus
+                                dispositivos.
+                            <ul class="small">
+                                <li><span class="estado-programado">Programado</span>: Mantenimiento agendado</li>
+                                <li><span class="estado-en_proceso">En Proceso</span>: Mantenimiento en ejecución</li>
+                                <li><span class="estado-completado">Completado</span>: Mantenimiento finalizado</li>
+                            </ul>
                             </p>
                         </div>
                     </div>
@@ -232,17 +246,20 @@ function formatearEstado($estado) {
 
         <ul class="nav nav-tabs mt-4" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="dispositivos-tab" data-bs-toggle="tab" data-bs-target="#dispositivos" type="button" role="tab" aria-controls="dispositivos" aria-selected="true">
+                <button class="nav-link active" id="dispositivos-tab" data-bs-toggle="tab"
+                    data-bs-target="#dispositivos" type="button" role="tab" aria-controls="dispositivos"
+                    aria-selected="true">
                     <i class="fas fa-laptop me-2"></i>Mis Dispositivos
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="mantenimientos-tab" data-bs-toggle="tab" data-bs-target="#mantenimientos" type="button" role="tab" aria-controls="mantenimientos" aria-selected="false">
+                <button class="nav-link" id="mantenimientos-tab" data-bs-toggle="tab" data-bs-target="#mantenimientos"
+                    type="button" role="tab" aria-controls="mantenimientos" aria-selected="false">
                     <i class="fas fa-tools me-2"></i>Historial de Mantenimientos
                 </button>
             </li>
         </ul>
-        
+
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="dispositivos" role="tabpanel" aria-labelledby="dispositivos-tab">
                 <div class="card border-top-0 rounded-0 rounded-bottom">
@@ -281,7 +298,7 @@ function formatearEstado($estado) {
                     </div>
                 </div>
             </div>
-            
+
             <div class="tab-pane fade" id="mantenimientos" role="tabpanel" aria-labelledby="mantenimientos-tab">
                 <div class="card border-top-0 rounded-0 rounded-bottom">
                     <div class="card-body">
@@ -330,7 +347,6 @@ function formatearEstado($estado) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Nuevo gráfico de tipos de dispositivos
         const ctxTipos = document.getElementById('tiposDispositivos').getContext('2d');
         const tiposChart = new Chart(ctxTipos, {
             type: 'pie',
@@ -363,7 +379,7 @@ function formatearEstado($estado) {
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
                                 const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
@@ -376,21 +392,19 @@ function formatearEstado($estado) {
             }
         });
 
-        // Gráfico de mantenimientos
         const ctxMantenimientos = document.getElementById('mantenimientosChart').getContext('2d');
-        
-        // Contar mantenimientos por estado
+
         let programados = 0;
         let enProceso = 0;
         let completados = 0;
-        
+
         document.querySelectorAll('.fila-mantenimiento').forEach(fila => {
             const estado = fila.getAttribute('data-estado');
             if (estado === 'programado') programados++;
             else if (estado === 'en_proceso') enProceso++;
             else if (estado === 'completado') completados++;
         });
-        
+
         const mantenimientosChart = new Chart(ctxMantenimientos, {
             type: 'bar',
             data: {
@@ -426,11 +440,10 @@ function formatearEstado($estado) {
             }
         });
 
-        // Filtro de mantenimientos
-        document.getElementById('filtroEstado').addEventListener('change', function() {
+        document.getElementById('filtroEstado').addEventListener('change', function () {
             const filtro = this.value;
             const filas = document.querySelectorAll('.fila-mantenimiento');
-            
+
             filas.forEach(fila => {
                 if (filtro === '' || fila.getAttribute('data-estado') === filtro) {
                     fila.style.display = '';
@@ -440,23 +453,17 @@ function formatearEstado($estado) {
             });
         });
 
-        // Actualización en tiempo real
-        document.getElementById('refreshData').addEventListener('click', function() {
+        document.getElementById('refreshData').addEventListener('click', function () {
             this.classList.add('fa-spin');
-            
-            // Simular actualización con AJAX
+
             setTimeout(() => {
-                // En producción, aquí iría una llamada AJAX real
                 $.ajax({
                     url: 'get_informes_data.php',
                     type: 'GET',
                     data: { user_id: <?php echo $id_usuario; ?> },
-                    success: function(response) {
-                        // Actualizar los datos con la respuesta
-                        // En este ejemplo solo detenemos la animación
+                    success: function (response) {
                         document.getElementById('refreshData').classList.remove('fa-spin');
-                        
-                        // Mostrar notificación de actualización
+
                         const alertDiv = document.createElement('div');
                         alertDiv.className = 'alert alert-success alert-dismissible fade show';
                         alertDiv.innerHTML = `
@@ -465,10 +472,9 @@ function formatearEstado($estado) {
                         `;
                         document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
                     },
-                    error: function() {
+                    error: function () {
                         document.getElementById('refreshData').classList.remove('fa-spin');
-                        
-                        // Mostrar error
+
                         const alertDiv = document.createElement('div');
                         alertDiv.className = 'alert alert-danger alert-dismissible fade show';
                         alertDiv.innerHTML = `
@@ -482,5 +488,5 @@ function formatearEstado($estado) {
         });
     </script>
 </body>
-</html>
 
+</html>

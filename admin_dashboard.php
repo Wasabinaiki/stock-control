@@ -7,11 +7,9 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION
     exit;
 }
 
-// Obtener información del administrador
 $admin_id = $_SESSION["id"];
 $admin_username = $_SESSION["username"];
 
-// Consulta para obtener estadísticas básicas (opcional)
 $sql_stats = "SELECT 
     (SELECT COUNT(*) FROM usuarios) as total_usuarios,
     (SELECT COUNT(*) FROM dispositivos) as total_dispositivos,
@@ -68,7 +66,6 @@ $stats = mysqli_fetch_assoc($result_stats);
             color: white;
         }
 
-        /* Sidebar styles - con scroll */
         .sidebar {
             position: fixed;
             top: 0;
@@ -81,14 +78,10 @@ $stats = mysqli_fetch_assoc($result_stats);
             transition: all 0.3s;
             width: 250px;
             overflow-y: auto;
-            /* Añadir scroll vertical */
             scrollbar-width: thin;
-            /* Para Firefox */
             scrollbar-color: #764ba2 #f8f9fa;
-            /* Para Firefox */
         }
 
-        /* Estilo para la barra de desplazamiento en Chrome, Edge, Safari */
         .sidebar::-webkit-scrollbar {
             width: 6px;
         }
@@ -207,7 +200,6 @@ $stats = mysqli_fetch_assoc($result_stats);
             border-radius: 10px 10px 0 0 !important;
         }
 
-        /* Responsive adjustments */
         @media (max-width: 768px) {
             .sidebar {
                 margin-left: -250px;
@@ -261,7 +253,6 @@ $stats = mysqli_fetch_assoc($result_stats);
         </div>
     </nav>
 
-    <!-- Sidebar con scroll -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-heading">Administración</div>
         <ul class="nav flex-column">
@@ -315,19 +306,15 @@ $stats = mysqli_fetch_assoc($result_stats);
                 </a>
             </li>
         </ul>
-        <!-- Espacio adicional al final para asegurar que los últimos elementos sean accesibles -->
         <div style="height: 20px;"></div>
     </div>
 
-    <!-- Toggle sidebar button -->
     <button class="toggle-sidebar" id="toggleSidebar">
         <i class="fas fa-chevron-left" id="toggleIcon"></i>
     </button>
 
-    <!-- Main content -->
     <div class="main-content" id="mainContent">
         <div class="container-fluid">
-            <!-- Mensaje de bienvenida -->
             <div class="card welcome-card mb-4">
                 <div class="card-body">
                     <h2 class="card-title mb-3">Bienvenido, <?php echo htmlspecialchars($admin_username); ?></h2>
@@ -341,7 +328,6 @@ $stats = mysqli_fetch_assoc($result_stats);
                 </div>
             </div>
 
-            <!-- Estadísticas generales -->
             <h3 class="mb-4"><i class="fas fa-chart-line me-2"></i>Estadísticas del Sistema</h3>
             <div class="row mb-4">
                 <div class="col-md-3 mb-4">
@@ -382,7 +368,6 @@ $stats = mysqli_fetch_assoc($result_stats);
                 </div>
             </div>
 
-            <!-- Acceso rápido -->
             <h3 class="mb-4"><i class="fas fa-bolt me-2"></i>Acceso Rápido</h3>
             <div class="row">
                 <div class="col-md-4 mb-4">
@@ -424,14 +409,12 @@ $stats = mysqli_fetch_assoc($result_stats);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Toggle sidebar functionality
         document.addEventListener('DOMContentLoaded', function () {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
             const toggleBtn = document.getElementById('toggleSidebar');
             const toggleIcon = document.getElementById('toggleIcon');
 
-            // Check for saved state
             const sidebarState = localStorage.getItem('adminSidebarState');
             if (sidebarState === 'collapsed') {
                 sidebar.classList.add('sidebar-collapsed');
@@ -457,7 +440,6 @@ $stats = mysqli_fetch_assoc($result_stats);
                 }
             });
 
-            // Handle mobile view
             function checkWidth() {
                 if (window.innerWidth <= 768) {
                     sidebar.classList.add('sidebar-collapsed');
@@ -474,10 +456,8 @@ $stats = mysqli_fetch_assoc($result_stats);
                 }
             }
 
-            // Initial check
             checkWidth();
 
-            // Listen for window resize
             window.addEventListener('resize', checkWidth);
         });
     </script>

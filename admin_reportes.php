@@ -2,49 +2,38 @@
 session_start();
 require_once "includes/config.php";
 
-// Verificar si el usuario ha iniciado sesión y es administrador
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION["rol"] !== "administrador") {
     header("location: login.php");
     exit;
 }
 
-// Función para registrar errores
 function logError($message)
 {
     error_log(date('[Y-m-d H:i:s] ') . $message . "\n", 3, 'error_log.txt');
 }
 
-// Función para formatear el estado
 function formatearEstado($estado)
 {
-    // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
     $estado = strtolower(str_replace('_', ' ', $estado));
-    // Capitalizar la primera letra de cada palabra
     return ucwords($estado);
 }
 
-// FILTROS PARA MANTENIMIENTOS
 $estado_mantenimiento = isset($_GET['estado_mantenimiento']) ? $_GET['estado_mantenimiento'] : '';
 $orden_fecha_mantenimiento = isset($_GET['orden_fecha_mantenimiento']) ? $_GET['orden_fecha_mantenimiento'] : '';
 
-// FILTROS PARA DISPOSITIVOS
 $tipo_dispositivo = isset($_GET['tipo_dispositivo']) ? $_GET['tipo_dispositivo'] : '';
 $orden_fecha_entrega = isset($_GET['orden_fecha_entrega']) ? $_GET['orden_fecha_entrega'] : '';
 
-// FILTROS PARA PQRS
 $tipo_pqr = isset($_GET['tipo_pqr']) ? $_GET['tipo_pqr'] : '';
 $estado_pqr = isset($_GET['estado_pqr']) ? $_GET['estado_pqr'] : '';
 $orden_fecha_pqr = isset($_GET['orden_fecha_pqr']) ? $_GET['orden_fecha_pqr'] : '';
 
-// FILTROS PARA CONTACTOS
 $asunto_contacto = isset($_GET['asunto_contacto']) ? $_GET['asunto_contacto'] : '';
 $estado_contacto = isset($_GET['estado_contacto']) ? $_GET['estado_contacto'] : '';
 $orden_fecha_contacto = isset($_GET['orden_fecha_contacto']) ? $_GET['orden_fecha_contacto'] : '';
 
-// FILTROS PARA BODEGA
 $estado_bodega = isset($_GET['estado_bodega']) ? $_GET['estado_bodega'] : '';
 
-// Obtener todos los mantenimientos con información de dispositivos y usuarios
 $sql = "SELECT m.id, m.id_dispositivo, m.fecha_programada, m.descripcion, m.estado, 
                d.marca, d.modelo, d.tipo as tipo_dispositivo, u.username 
         FROM mantenimientos m 
@@ -52,12 +41,10 @@ $sql = "SELECT m.id, m.id_dispositivo, m.fecha_programada, m.descripcion, m.esta
         JOIN usuarios u ON d.id_usuario = u.id_usuario
         WHERE 1=1";
 
-// Aplicar filtro si se seleccionó un estado
 if ($estado_mantenimiento) {
     $sql .= " AND m.estado = '" . mysqli_real_escape_string($link, $estado_mantenimiento) . "'";
 }
 
-// Ordenar por fecha si se especifica
 if (!empty($orden_fecha_mantenimiento)) {
     $sql .= " ORDER BY m.fecha_programada " . ($orden_fecha_mantenimiento == 'asc' ? 'ASC' : 'DESC');
 } else {
@@ -69,7 +56,6 @@ if (!$result) {
     logError("Error en la consulta de mantenimientos: " . mysqli_error($link));
 }
 
-// Obtener todos los dispositivos con filtros
 $sql_dispositivos = "SELECT d.*, u.username FROM dispositivos d 
                     JOIN usuarios u ON d.id_usuario = u.id_usuario 
                     WHERE 1=1";
@@ -78,7 +64,6 @@ if (!empty($tipo_dispositivo)) {
     $sql_dispositivos .= " AND d.tipo = '" . mysqli_real_escape_string($link, $tipo_dispositivo) . "'";
 }
 
-// Ordenar por fecha de entrega si se especifica
 if (!empty($orden_fecha_entrega)) {
     $sql_dispositivos .= " ORDER BY d.fecha_entrega " . ($orden_fecha_entrega == 'asc' ? 'ASC' : 'DESC');
 } else {
@@ -90,7 +75,6 @@ if (!$result_dispositivos) {
     logError("Error en la consulta de dispositivos: " . mysqli_error($link));
 }
 
-// NUEVA SECCIÓN: Obtener todos los PQRs con filtros
 $sql_pqrs = "SELECT p.*, u.username 
             FROM pqrs p 
             JOIN usuarios u ON p.id_usuario = u.id_usuario 
@@ -104,7 +88,6 @@ if (!empty($estado_pqr)) {
     $sql_pqrs .= " AND p.estado = '" . mysqli_real_escape_string($link, $estado_pqr) . "'";
 }
 
-// Ordenar por fecha si se especifica
 if (!empty($orden_fecha_pqr)) {
     $sql_pqrs .= " ORDER BY p.fecha_creacion " . ($orden_fecha_pqr == 'asc' ? 'ASC' : 'DESC');
 } else {
@@ -116,7 +99,6 @@ if (!$result_pqrs) {
     logError("Error en la consulta de PQRs: " . mysqli_error($link));
 }
 
-// NUEVA SECCIÓN: Obtener todos los formularios de contacto con filtros
 $sql_contactos = "SELECT c.* FROM contactos c WHERE 1=1";
 
 if (!empty($asunto_contacto)) {
@@ -127,7 +109,6 @@ if (!empty($estado_contacto)) {
     $sql_contactos .= " AND c.estado = '" . mysqli_real_escape_string($link, $estado_contacto) . "'";
 }
 
-// Ordenar por fecha si se especifica
 if (!empty($orden_fecha_contacto)) {
     $sql_contactos .= " ORDER BY c.fecha " . ($orden_fecha_contacto == 'asc' ? 'ASC' : 'DESC');
 } else {
@@ -139,18 +120,14 @@ if (!$result_contactos) {
     logError("Error en la consulta de contactos: " . mysqli_error($link));
 }
 
-// NUEVA SECCIÓN: Obtener todos los dispositivos en Bodega
-// Corregimos la consulta para mostrar los dispositivos en bodega correctamente
 $sql_bodega = "SELECT d.id_dispositivo, d.tipo, d.marca, d.modelo, d.estado, u.username 
               FROM dispositivos d
               JOIN usuarios u ON d.id_usuario = u.id_usuario
               WHERE 1=1";
 
-// Aplicamos el filtro de estado si existe
 if (!empty($estado_bodega)) {
     $sql_bodega .= " AND d.estado = '" . mysqli_real_escape_string($link, $estado_bodega) . "'";
 }
-// SOLUCIÓN: Eliminamos el else para que no aplique filtro por defecto
 
 $sql_bodega .= " ORDER BY d.id_dispositivo";
 
@@ -283,13 +260,11 @@ if (!$result_bodega) {
     <div class="container mt-4">
         <h2 class="mb-4">Gestión de Reportes</h2>
 
-        <!-- Mantenimientos Programados con filtro por estado -->
         <div class="section-header">
             <i class="fas fa-tools me-2"></i>Mantenimientos Programados
         </div>
         <div class="section-filters">
             <form action="" method="GET" class="filter-form">
-                <!-- Mantener otros filtros ocultos -->
                 <input type="hidden" name="tipo_dispositivo" value="<?php echo htmlspecialchars($tipo_dispositivo); ?>">
                 <input type="hidden" name="orden_fecha_entrega"
                     value="<?php echo htmlspecialchars($orden_fecha_entrega); ?>">
@@ -371,13 +346,11 @@ if (!$result_bodega) {
             </div>
         </div>
 
-        <!-- Dispositivos Registrados -->
         <div class="section-header">
             <i class="fas fa-laptop me-2"></i>Dispositivos Registrados
         </div>
         <div class="section-filters">
             <form action="" method="GET" class="filter-form">
-                <!-- Mantener otros filtros ocultos -->
                 <input type="hidden" name="estado_mantenimiento"
                     value="<?php echo htmlspecialchars($estado_mantenimiento); ?>">
                 <input type="hidden" name="orden_fecha_mantenimiento"
@@ -445,13 +418,11 @@ if (!$result_bodega) {
             </div>
         </div>
 
-        <!-- NUEVA SECCIÓN: PQRs Registrados -->
         <div class="section-header">
             <i class="fas fa-question-circle me-2"></i>PQRs Registrados
         </div>
         <div class="section-filters">
             <form action="" method="GET" class="filter-form">
-                <!-- Mantener otros filtros ocultos -->
                 <input type="hidden" name="estado_mantenimiento"
                     value="<?php echo htmlspecialchars($estado_mantenimiento); ?>">
                 <input type="hidden" name="orden_fecha_mantenimiento"
@@ -543,13 +514,11 @@ if (!$result_bodega) {
             </div>
         </div>
 
-        <!-- NUEVA SECCIÓN: Formularios de Contacto -->
         <div class="section-header">
             <i class="fas fa-envelope me-2"></i>Formularios de Contacto
         </div>
         <div class="section-filters">
             <form action="" method="GET" class="filter-form">
-                <!-- Mantener otros filtros ocultos -->
                 <input type="hidden" name="estado_mantenimiento"
                     value="<?php echo htmlspecialchars($estado_mantenimiento); ?>">
                 <input type="hidden" name="orden_fecha_mantenimiento"
@@ -639,13 +608,11 @@ if (!$result_bodega) {
             </div>
         </div>
 
-        <!-- NUEVA SECCIÓN: Dispositivos en Bodega -->
         <div class="section-header">
             <i class="fas fa-warehouse me-2"></i>Dispositivos en Bodega
         </div>
         <div class="section-filters">
             <form action="" method="GET" class="filter-form">
-                <!-- Mantener otros filtros ocultos -->
                 <input type="hidden" name="estado_mantenimiento"
                     value="<?php echo htmlspecialchars($estado_mantenimiento); ?>">
                 <input type="hidden" name="orden_fecha_mantenimiento"
@@ -730,6 +697,5 @@ if (!$result_bodega) {
 </html>
 
 <?php
-// Cerrar la conexión a la base de datos
 mysqli_close($link);
 ?>

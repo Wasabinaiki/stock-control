@@ -1,18 +1,14 @@
 <?php
 session_start();
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
-// Determinar si el usuario es administrador
 $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
 
-// Obtener actividades recientes del usuario
 require_once "includes/config.php";
 $usuario_id = $_SESSION["id"];
 
-// Consulta para obtener las actividades recientes
 $sql_actividades = "
     (SELECT 'PQRS' as tipo, fecha_creacion as fecha, CONCAT('Registraste un ', tipo) as descripcion FROM pqrs WHERE id_usuario = ? ORDER BY fecha_creacion DESC LIMIT 3)
     UNION ALL
@@ -76,7 +72,6 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             color: white;
         }
 
-        /* Sidebar styles - con scroll */
         .sidebar {
             position: fixed;
             top: 0;
@@ -89,14 +84,10 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             transition: all 0.3s;
             width: 250px;
             overflow-y: auto;
-            /* Añadir scroll vertical */
             scrollbar-width: thin;
-            /* Para Firefox */
             scrollbar-color: #764ba2 #f8f9fa;
-            /* Para Firefox */
         }
 
-        /* Estilo para la barra de desplazamiento en Chrome, Edge, Safari */
         .sidebar::-webkit-scrollbar {
             width: 6px;
         }
@@ -116,7 +107,6 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
 
         .sidebar .nav-link {
             color: #000 !important;
-            /* Manteniendo tu solución */
             font-weight: 500;
             padding: 0.75rem 1rem;
             border-radius: 0;
@@ -126,19 +116,16 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
         .sidebar .nav-link:hover {
             background-color: rgba(118, 75, 162, 0.1);
             color: #000;
-            /* Mantener el texto negro al pasar el cursor */
         }
 
         .sidebar .nav-link.active {
             background-color: rgba(118, 75, 162, 0.2);
             color: #764ba2;
-            /* Color destacado para el enlace activo */
         }
 
         .sidebar .nav-link i {
             margin-right: 10px;
             color: #764ba2;
-            /* Mantener el color de los íconos */
         }
 
         .sidebar-heading {
@@ -194,7 +181,6 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             margin-bottom: 1rem;
         }
 
-        /* Estilos para actividades recientes */
         .activity-item {
             padding: 10px 15px;
             border-left: 3px solid #764ba2;
@@ -219,7 +205,6 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             color: #764ba2;
         }
 
-        /* Responsive adjustments */
         @media (max-width: 768px) {
             .sidebar {
                 margin-left: -250px;
@@ -275,7 +260,6 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             </div>
         </div>
     </nav>
-    <!-- Sidebar con scroll -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-heading">Dispositivos</div>
         <ul class="nav flex-column">
@@ -369,17 +353,13 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                 </li>
             </ul>
         <?php endif; ?>
-        <!-- Espacio adicional al final para asegurar que los últimos elementos sean accesibles -->
         <div style="height: 20px;"></div>
     </div>
-    <!-- Toggle sidebar button -->
     <button class="toggle-sidebar" id="toggleSidebar">
         <i class="fas fa-chevron-left" id="toggleIcon"></i>
     </button>
-    <!-- Main content -->
     <div class="main-content" id="mainContent">
         <div class="container-fluid">
-            <!-- Mensaje de bienvenida -->
             <div class="card welcome-card mb-5">
                 <div class="card-body">
                     <h2 class="card-title mb-3">Bienvenido, <?php echo htmlspecialchars($_SESSION["username"]); ?></h2>
@@ -393,7 +373,6 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                     </p>
                 </div>
             </div>
-            <!-- Características destacadas -->
             <h3 class="mb-4">Características Destacadas</h3>
             <div class="row">
                 <div class="col-md-4 mb-4">
@@ -431,7 +410,6 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                     </div>
                 </div>
             </div>
-            <!-- Actividad reciente -->
             <h3 class="mb-4 mt-4">Movimientos Recientes</h3>
             <div class="card">
                 <div class="card-body">
@@ -474,13 +452,11 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Toggle sidebar functionality
         document.addEventListener('DOMContentLoaded', function () {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
             const toggleBtn = document.getElementById('toggleSidebar');
             const toggleIcon = document.getElementById('toggleIcon');
-            // Check for saved state
             const sidebarState = localStorage.getItem('sidebarState');
             if (sidebarState === 'collapsed') {
                 sidebar.classList.add('sidebar-collapsed');
@@ -503,7 +479,6 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                     localStorage.setItem('sidebarState', 'expanded');
                 }
             });
-            // Handle mobile view
             function checkWidth() {
                 if (window.innerWidth <= 768) {
                     sidebar.classList.add('sidebar-collapsed');
@@ -519,9 +494,7 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
                     toggleIcon.classList.add('fa-chevron-left');
                 }
             }
-            // Initial check
             checkWidth();
-            // Listen for window resize
             window.addEventListener('resize', checkWidth);
         });
     </script>

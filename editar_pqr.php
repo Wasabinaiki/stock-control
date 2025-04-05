@@ -14,7 +14,6 @@ if ($pqr_id === 0) {
     exit;
 }
 
-// Obtener detalles del PQR
 $sql = "SELECT p.*, u.username FROM pqrs p JOIN usuarios u ON p.id_usuario = u.id_usuario WHERE p.id = ?";
 if ($stmt = mysqli_prepare($link, $sql)) {
     mysqli_stmt_bind_param($stmt, "i", $pqr_id);
@@ -32,7 +31,6 @@ if ($stmt = mysqli_prepare($link, $sql)) {
     mysqli_stmt_close($stmt);
 }
 
-// Procesar el formulario de edición
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $new_status = $_POST["estado"];
     $respuesta = $_POST["respuesta"];

@@ -10,20 +10,16 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 $id_dispositivo = $tipo = $marca = $modelo = $fecha_entrega = $licencias = $procesador = $almacenamiento = $ram = $serial = "";
 $tipo_err = $marca_err = $modelo_err = $fecha_entrega_err = $licencias_err = $procesador_err = $almacenamiento_err = $ram_err = $serial_err = "";
 
-// Verificar si se recibió un ID por GET
 if (isset($_GET["id"]) && !empty(trim($_GET["id"]))) {
     $id_dispositivo = trim($_GET["id"]);
 } elseif (isset($_POST["id_dispositivo"]) && !empty(trim($_POST["id_dispositivo"]))) {
-    // Si no hay ID en GET pero sí en POST, usar ese
     $id_dispositivo = trim($_POST["id_dispositivo"]);
 } else {
     header("location: error.php");
     exit();
 }
 
-// Procesar el formulario cuando se envía
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Validar y obtener los datos del formulario
     if (empty(trim($_POST["tipo"]))) {
         $tipo_err = "Por favor ingrese el tipo de dispositivo.";
     } else {
@@ -54,7 +50,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $ram = trim($_POST["ram"]);
     $serial = trim($_POST["serial"]);
 
-    // Si no hay errores de validación, proceder con la actualización
     if (empty($tipo_err) && empty($marca_err) && empty($modelo_err) && empty($fecha_entrega_err)) {
         $sql = "UPDATE dispositivos SET tipo=?, marca=?, modelo=?, fecha_entrega=?, licencias=?, procesador=?, almacenamiento=?, ram=?, serial=? WHERE id_dispositivo=? AND id_usuario=?";
 
@@ -85,7 +80,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 } else {
-    // Si no es POST, cargar los datos actuales del dispositivo
     $sql = "SELECT * FROM dispositivos WHERE id_dispositivo = ? AND id_usuario = ?";
     if ($stmt = mysqli_prepare($link, $sql)) {
         mysqli_stmt_bind_param($stmt, "ii", $id_dispositivo, $_SESSION["id"]);

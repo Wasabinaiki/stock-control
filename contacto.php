@@ -1,9 +1,7 @@
 <?php
-// contacto.php
 session_start();
 require_once "includes/config.php";
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
@@ -17,7 +15,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $asunto = $_POST['subject'];
     $mensaje = $_POST['message'];
 
-    // Manejo del archivo adjunto
     $archivo = '';
     if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] == 0) {
         $target_dir = "uploads/";
@@ -27,7 +24,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Insertar datos en la base de datos
     $sql = "INSERT INTO contactos (nombre, email, telefono, asunto, mensaje, archivo) VALUES (?, ?, ?, ?, ?, ?)";
 
     if ($stmt = mysqli_prepare($link, $sql)) {
@@ -49,7 +45,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     mysqli_stmt_close($stmt);
 
-    // Redirigir para evitar reenvío del formulario
     header("Location: " . $_SERVER['PHP_SELF'] . "?success=1");
     exit;
 }
@@ -61,7 +56,6 @@ if (isset($_GET['success'])) {
 
 <!DOCTYPE html>
 <html lang="es">
-<!-- El resto del HTML permanece igual -->
 
 <head>
     <meta charset="UTF-8">

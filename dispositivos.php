@@ -14,7 +14,6 @@ if (empty($tipo)) {
     exit;
 }
 
-// Mensajes de éxito y error
 $success_message = '';
 $error_message = '';
 
@@ -121,7 +120,6 @@ if ($stmt = mysqli_prepare($link, $sql)) {
             background: linear-gradient(135deg, #0b8a45 0%, #20bf6b 100%);
         }
 
-        /* Estilos para el modal de confirmación */
         .modal-content {
             border-radius: 10px;
             border: none;
@@ -164,7 +162,6 @@ if ($stmt = mysqli_prepare($link, $sql)) {
 
     <div class="container mt-5">
         <?php
-        // Mostrar mensaje de éxito
         if (!empty($success_message)) {
             echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
             echo '<i class="fas fa-check-circle me-2"></i>' . htmlspecialchars($success_message);
@@ -172,7 +169,6 @@ if ($stmt = mysqli_prepare($link, $sql)) {
             echo '</div>';
         }
 
-        // Mostrar mensaje de error
         if (!empty($error_message)) {
             echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
             echo '<i class="fas fa-exclamation-circle me-2"></i>' . htmlspecialchars($error_message);
@@ -206,7 +202,6 @@ if ($stmt = mysqli_prepare($link, $sql)) {
                     echo "</div>";
                     echo "</div>";
 
-                    // Modal de confirmación para eliminar
                     echo "<div class='modal fade' id='deleteModal" . $row['id_dispositivo'] . "' tabindex='-1' aria-labelledby='deleteModalLabel" . $row['id_dispositivo'] . "' aria-hidden='true'>";
                     echo "<div class='modal-dialog'>";
                     echo "<div class='modal-content'>";

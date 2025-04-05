@@ -20,7 +20,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if (empty($username_err) && empty($password_err)) {
-        // Consulta modificada para buscar por nombre de usuario o correo electrónico
         $sql = "SELECT id_usuario, username, password, rol FROM usuarios WHERE username = ? OR email = ?";
 
         if ($stmt = mysqli_prepare($link, $sql)) {
@@ -79,6 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -101,9 +101,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         .container {
@@ -121,13 +129,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             background-color: #ffffff;
             border-top-left-radius: 12px;
             border-bottom-left-radius: 12px;
-            text-align: center; /* Centrar contenido */
+            text-align: center;
         }
 
         .info-container {
             flex: 1;
             padding: 40px;
-            background-color:rgb(55, 19, 85);
+            background-color: rgb(55, 19, 85);
             color: white;
             border-top-right-radius: 12px;
             border-bottom-right-radius: 12px;
@@ -162,15 +170,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .form-group {
             position: relative;
-            margin-bottom: 30px; /* Espacio adicional para errores */
+            margin-bottom: 30px;
             width: 80%;
             margin-left: auto;
             margin-right: auto;
         }
 
         .form-control {
-            padding-left: 40px; /* Espacio para los íconos */
-            padding-right: 40px; /* Espacio para el ícono de mostrar contraseña */
+            padding-left: 40px;
+            padding-right: 40px;
             height: 50px;
             font-size: 16px;
             border: 1px solid #ddd;
@@ -184,7 +192,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             top: 50%;
             transform: translateY(-50%);
             pointer-events: none;
-            color:rgb(87, 27, 227);
+            color: rgb(87, 27, 227);
         }
 
         .eye-icon {
@@ -194,7 +202,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             transform: translateY(-50%);
             cursor: pointer;
             color: #764ba2;
-            
+
         }
 
         .eye-icon i {
@@ -208,17 +216,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             left: 0;
             font-size: 14px;
             color: red;
-            min-height: 20px; /* Espacio reservado para evitar saltos */
+            min-height: 20px;
         }
 
-        /* Centrar el formulario */
         .form-container form {
-            max-width: 400px; /* Ancho máximo del formulario */
-            margin: 0 auto; /* Centrar horizontalmente */
+            max-width: 400px;
+            margin: 0 auto;
         }
 
-        /* Mejorar espaciado */
-        .form-group + .form-group {
+        .form-group+.form-group {
             margin-top: 20px;
         }
 
@@ -228,13 +234,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     </style>
 </head>
+
 <body>
-    <!-- Contenedor principal -->
     <div class="container">
-        <!-- Formulario de inicio de sesión -->
         <div class="form-container">
             <h2><i class="fas fa-sign-in-alt me-2" style="margin-bottom: 5%;"></i>Iniciar Sesión</h2>
-            <?php 
+            <?php
             if ($login_attempts > 0) {
                 echo "<div class='alert alert-warning' role='alert'>
                         <i class='fas fa-exclamation-triangle me-2'></i>Intentos fallidos: $login_attempts
@@ -243,12 +248,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ?>
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                 <div class="form-group">
-                    <input type="text" name="username" class="form-control <?php echo (!empty($username_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $username; ?>" placeholder="Usuario o Correo Electrónico">
+                    <input type="text" name="username"
+                        class="form-control <?php echo (!empty($username_err)) ? 'is-invalid' : ''; ?>"
+                        value="<?php echo $username; ?>" placeholder="Usuario o Correo Electrónico">
                     <i class="fas fa-user icon"></i>
                     <div class="invalid-feedback"><?php echo $username_err; ?></div>
-                </div>    
+                </div>
                 <div class="form-group position-relative">
-                    <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>" placeholder="Contraseña">
+                    <input type="password" name="password"
+                        class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>"
+                        placeholder="Contraseña">
                     <i class="fas fa-lock icon"></i>
                     <span class="eye-icon show-password" onclick="togglePasswordVisibility(this)">
                         <i class="fas fa-eye-slash"></i>
@@ -267,18 +276,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </form>
         </div>
 
-        <!-- Información adicional -->
         <div class="info-container">
             <div class="logo">
                 <img src="Stock Control Logo Curved.png" alt="Logo StockControl">
             </div>
             <h1 style="margin-bottom: 5%;">Bienvenido a Stock Control</h1>
-            <p style="margin-bottom: 6%;">Gestiona fácilmente tus equipos de manera rápida y eficaz con la disposición de métricas y analíticas a tu disposición.</p>
+            <p style="margin-bottom: 6%;">Gestiona fácilmente tus equipos de manera rápida y eficaz con la disposición
+                de métricas y analíticas a tu disposición.</p>
             <p style="font-size: 140%;">¡Optimiza tu control de dispositivos hoy mismo!</p>
         </div>
     </div>
 
-    <!-- Script para mostrar/ocultar contraseña -->
     <script>
         function togglePasswordVisibility(icon) {
             const passwordInput = document.querySelector('input[name="password"]');
@@ -292,4 +300,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     </script>
 </body>
+
 </html>

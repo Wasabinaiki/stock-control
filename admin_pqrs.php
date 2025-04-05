@@ -7,12 +7,10 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION
     exit;
 }
 
-// Filtros
 $tipo_filtro = isset($_GET['tipo_filtro']) ? $_GET['tipo_filtro'] : '';
 $estado_filtro = isset($_GET['estado_filtro']) ? $_GET['estado_filtro'] : '';
 $orden_fecha = isset($_GET['orden_fecha']) ? $_GET['orden_fecha'] : 'desc';
 
-// Obtener lista de PQRs con filtros
 $sql = "SELECT p.*, u.username FROM pqrs p JOIN usuarios u ON p.id_usuario = u.id_usuario WHERE 1=1";
 
 if (!empty($tipo_filtro)) {
@@ -27,7 +25,6 @@ $sql .= " ORDER BY p.fecha_creacion " . ($orden_fecha == 'asc' ? 'ASC' : 'DESC')
 
 $result_pqrs = mysqli_query($link, $sql);
 
-// Función para depurar valores
 function debug_to_console($data)
 {
     $output = $data;
@@ -99,22 +96,18 @@ function debug_to_console($data)
             border-top: none;
         }
 
-        /* Estados estandarizados */
         .bg-warning {
             background-color: #ffc107 !important;
-            /* Amarillo para pendiente */
             color: #000 !important;
         }
 
         .bg-info {
             background-color: #0d6efd !important;
-            /* Azul para en proceso */
             color: #fff !important;
         }
 
         .bg-success {
             background-color: #198754 !important;
-            /* Verde para resuelto */
             color: #fff !important;
         }
 
@@ -177,7 +170,6 @@ function debug_to_console($data)
                 <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>PQRs Registrados</h5>
             </div>
             <div class="card-body">
-                <!-- Filtros -->
                 <form action="" method="GET" class="filter-form">
                     <select name="tipo_filtro" class="form-select">
                         <option value="">Todos los tipos</option>
@@ -226,7 +218,6 @@ function debug_to_console($data)
                             <?php if (mysqli_num_rows($result_pqrs) > 0): ?>
                                 <?php while ($row = mysqli_fetch_assoc($result_pqrs)): ?>
                                     <?php
-                                    // Depurar el valor del estado para ver qué contiene exactamente
                                     debug_to_console("Estado para ID " . $row['id'] . ": '" . $row['estado'] . "'");
                                     ?>
                                     <tr>
@@ -235,14 +226,11 @@ function debug_to_console($data)
                                         <td><?php echo htmlspecialchars($row['tipo']); ?></td>
                                         <td>
                                             <?php
-                                            // Asegurémonos de que el estado esté definido
                                             $estado = isset($row['estado']) ? trim(strtolower($row['estado'])) : '';
 
-                                            // Determinar la clase de la insignia y el texto según el estado
                                             $badgeClass = 'bg-secondary';
                                             $estadoTexto = 'Desconocido';
 
-                                            // Manejar todos los posibles formatos de estados
                                             if ($estado == 'pendiente') {
                                                 $badgeClass = 'bg-warning';
                                                 $estadoTexto = 'Pendiente';
@@ -253,9 +241,8 @@ function debug_to_console($data)
                                                 $badgeClass = 'bg-success';
                                                 $estadoTexto = 'Resuelto';
                                             } else {
-                                                // Si no coincide con ninguno de los anteriores, mostrar el valor original
                                                 $estadoTexto = empty($estado) ? 'Pendiente' : ucfirst($estado);
-                                                $badgeClass = 'bg-warning'; // Por defecto pendiente
+                                                $badgeClass = 'bg-warning';
                                             }
                                             ?>
                                             <span class="badge <?php echo $badgeClass; ?>">

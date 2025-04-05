@@ -2,13 +2,11 @@
 session_start();
 require_once "includes/config.php";
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
 
-// Verificar si id_usuario está definido en la sesión
 if (!isset($_SESSION["id"])) {
     header("location: error.php?mensaje=Sesión inválida");
     exit;
@@ -17,12 +15,6 @@ if (!isset($_SESSION["id"])) {
 $id_usuario = $_SESSION["id"];
 $is_admin = isset($_SESSION["rol"]) && $_SESSION["rol"] === "administrador";
 
-// Depuración - Descomentar para verificar variables de sesión
-// echo "ID Usuario: " . $id_usuario . "<br>";
-// echo "Es admin: " . ($is_admin ? "Sí" : "No") . "<br>";
-
-// IMPORTANTE: Siempre filtramos por el usuario actual, incluso para administradores
-// Esto garantiza que cada usuario solo vea sus propios mantenimientos
 $sql = "SELECT m.*, d.tipo as tipo_dispositivo, d.marca, d.modelo 
         FROM mantenimientos m 
         JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
@@ -34,7 +26,6 @@ mysqli_stmt_bind_param($stmt, "i", $id_usuario);
 mysqli_stmt_execute($stmt);
 $result_mantenimientos = mysqli_stmt_get_result($stmt);
 
-// Estadísticas de mantenimientos del usuario actual
 $sql_stats = "SELECT m.estado, COUNT(*) as total 
              FROM mantenimientos m 
              JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
@@ -56,8 +47,8 @@ while ($row = mysqli_fetch_assoc($result_stats)) {
     $stats[$row['estado']] = $row['total'];
 }
 
-// Función para formatear el estado
-function formatearEstado($estado) {
+function formatearEstado($estado)
+{
     switch ($estado) {
         case 'programado':
             return 'Programado';
@@ -73,6 +64,7 @@ function formatearEstado($estado) {
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -85,91 +77,113 @@ function formatearEstado($estado) {
         body {
             background-color: #f8f9fa;
         }
+
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .navbar-brand, .nav-link {
+
+        .navbar-brand,
+        .nav-link {
             color: white !important;
         }
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
         }
+
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+
         .table {
             background-color: white;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
         .table thead th {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333 !important; /* Cambiado a gris oscuro para mejor legibilidad */
+            color: #333 !important;
             border: none;
             font-weight: bold;
         }
+
         .card {
             border: none;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
+
         .card-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             font-weight: bold;
             border-radius: 10px 10px 0 0 !important;
         }
+
         .chart-container {
             position: relative;
             height: 250px;
             width: 100%;
         }
-        .estado-programado, .programado {
+
+        .estado-programado,
+        .programado {
             color: #ffc107;
             font-weight: bold;
         }
-        .estado-en_proceso, .en_proceso {
+
+        .estado-en_proceso,
+        .en_proceso {
             color: #0d6efd;
             font-weight: bold;
         }
-        .estado-completado, .completado {
+
+        .estado-completado,
+        .completado {
             color: #198754;
             font-weight: bold;
         }
+
         .refresh-btn {
             cursor: pointer;
             transition: transform 0.3s ease;
         }
+
         .refresh-btn:hover {
             transform: rotate(180deg);
         }
-        /* Mejoras para la visualización de la tabla */
+
         .table-responsive {
             overflow-x: auto;
         }
-        .table th, .table td {
+
+        .table th,
+        .table td {
             vertical-align: middle;
             padding: 12px 15px;
         }
+
         .table tbody tr:hover {
             background-color: rgba(102, 126, 234, 0.05);
         }
-        /* Estilos para el filtro */
+
         .filter-container {
             background-color: white;
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
+
         .filter-label {
             font-weight: 600;
             color: #555;
             margin-bottom: 8px;
         }
-        /* Estilos para los encabezados de sección */
+
         .section-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -180,6 +194,7 @@ function formatearEstado($estado) {
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
@@ -209,7 +224,7 @@ function formatearEstado($estado) {
                 <i class="fas fa-sync-alt fa-2x text-primary"></i>
             </span>
         </div>
-        
+
         <div class="row mb-4">
             <div class="col-md-12">
                 <div class="card">
@@ -224,7 +239,7 @@ function formatearEstado($estado) {
                 </div>
             </div>
         </div>
-        
+
         <div class="mb-4">
             <a href="programar_mantenimiento.php" class="btn btn-primary">
                 <i class="fas fa-calendar-plus me-2"></i>Programar Mantenimiento
@@ -263,7 +278,7 @@ function formatearEstado($estado) {
                 <tbody>
                     <?php
                     if (mysqli_num_rows($result_mantenimientos) > 0) {
-                        while($row = mysqli_fetch_assoc($result_mantenimientos)) {
+                        while ($row = mysqli_fetch_assoc($result_mantenimientos)) {
                             echo "<tr class='fila-mantenimiento' data-estado='" . $row['estado'] . "'>";
                             echo "<td>" . htmlspecialchars($row['id']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['tipo_dispositivo'] . ' ' . $row['marca'] . ' ' . $row['modelo']) . "</td>";
@@ -283,7 +298,6 @@ function formatearEstado($estado) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Gráfico de mantenimientos
         const ctxMantenimientos = document.getElementById('mantenimientosChart').getContext('2d');
         const mantenimientosChart = new Chart(ctxMantenimientos, {
             type: 'doughnut',
@@ -296,9 +310,9 @@ function formatearEstado($estado) {
                         <?php echo $stats['completado']; ?>
                     ],
                     backgroundColor: [
-                        '#ffc107', // Amarillo para programados
-                        '#0d6efd', // Azul para en proceso
-                        '#198754'  // Verde para completados
+                        '#ffc107',
+                        '#0d6efd',
+                        '#198754'
                     ],
                     borderWidth: 1
                 }]
@@ -316,7 +330,7 @@ function formatearEstado($estado) {
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
                                 const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
@@ -329,11 +343,10 @@ function formatearEstado($estado) {
             }
         });
 
-        // Filtro de mantenimientos
-        document.getElementById('filtroEstado').addEventListener('change', function() {
+        document.getElementById('filtroEstado').addEventListener('change', function () {
             const filtro = this.value;
             const filas = document.querySelectorAll('.fila-mantenimiento');
-            
+
             filas.forEach(fila => {
                 if (filtro === '' || fila.getAttribute('data-estado') === filtro) {
                     fila.style.display = '';
@@ -343,8 +356,7 @@ function formatearEstado($estado) {
             });
         });
 
-        // Actualización en tiempo real
-        document.getElementById('refreshData').addEventListener('click', function() {
+        document.getElementById('refreshData').addEventListener('click', function () {
             this.classList.add('fa-spin');
             setTimeout(() => {
                 window.location.reload();
@@ -352,4 +364,5 @@ function formatearEstado($estado) {
         });
     </script>
 </body>
+
 </html>

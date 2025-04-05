@@ -42,7 +42,6 @@ if (isset($_GET["id"]) && !empty(trim($_GET["id"]))) {
     exit();
 }
 
-// Obtener lista de usuarios para el select
 $sql_usuarios = "SELECT id_usuario, username FROM usuarios";
 $result_usuarios = mysqli_query($link, $sql_usuarios);
 

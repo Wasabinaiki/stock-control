@@ -7,7 +7,6 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION
     exit;
 }
 
-// Mensajes de éxito y error
 $success_message = '';
 $error_message = '';
 
@@ -21,15 +20,13 @@ if (isset($_SESSION['error_message'])) {
     unset($_SESSION['error_message']);
 }
 
-// Filtros
 $estado_filtro = isset($_GET['estado_filtro']) ? $_GET['estado_filtro'] : '';
 
-// Construir consulta SQL con filtro
 $sql = "SELECT id_dispositivo, tipo, marca, modelo, estado FROM dispositivos WHERE 1=1";
 if (!empty($estado_filtro)) {
     $sql .= " AND estado = '" . mysqli_real_escape_string($link, $estado_filtro) . "'";
 }
-$sql .= " ORDER BY id_dispositivo DESC"; // Ordenar por ID más reciente
+$sql .= " ORDER BY id_dispositivo DESC";
 
 $result = mysqli_query($link, $sql);
 
@@ -116,7 +113,6 @@ if (!$result) {
             background-color: #d4edda !important;
         }
 
-        /* Estados estandarizados */
         .badge {
             padding: 6px 10px;
             border-radius: 12px;
@@ -161,6 +157,7 @@ if (!$result) {
             .filter-form {
                 flex-direction: column;
             }
+
             .filter-form select,
             .filter-form button {
                 width: 100%;
@@ -181,7 +178,8 @@ if (!$result) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="admin_dashboard.php"><i class="fas fa-tachometer-alt me-2"></i>Dashboard Administrador</a>
+                        <a class="nav-link" href="admin_dashboard.php"><i
+                                class="fas fa-tachometer-alt me-2"></i>Dashboard Administrador</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
@@ -195,7 +193,6 @@ if (!$result) {
 
     <div class="container">
         <?php
-        // Mostrar mensaje de éxito
         if (!empty($success_message)) {
             echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
             echo '<i class="fas fa-check-circle me-2"></i>' . htmlspecialchars($success_message);
@@ -203,7 +200,6 @@ if (!$result) {
             echo '</div>';
         }
 
-        // Mostrar mensaje de error
         if (!empty($error_message)) {
             echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
             echo '<i class="fas fa-exclamation-circle me-2"></i>' . htmlspecialchars($error_message);
@@ -217,14 +213,16 @@ if (!$result) {
                 <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>Gestión de Bodega</h5>
             </div>
             <div class="card-body">
-                <!-- Filtros -->
                 <form action="" method="GET" class="filter-form">
                     <select name="estado_filtro" class="form-select">
                         <option value="">Todos los estados</option>
                         <option value="Activo" <?php echo $estado_filtro == 'Activo' ? 'selected' : ''; ?>>Activo</option>
-                        <option value="Inactivo" <?php echo $estado_filtro == 'Inactivo' ? 'selected' : ''; ?>>Inactivo</option>
-                        <option value="En reparación" <?php echo $estado_filtro == 'En reparación' ? 'selected' : ''; ?>>En reparación</option>
-                        <option value="Completado" <?php echo $estado_filtro == 'Completado' ? 'selected' : ''; ?>>Completado</option>
+                        <option value="Inactivo" <?php echo $estado_filtro == 'Inactivo' ? 'selected' : ''; ?>>Inactivo
+                        </option>
+                        <option value="En reparación" <?php echo $estado_filtro == 'En reparación' ? 'selected' : ''; ?>>
+                            En reparación</option>
+                        <option value="Completado" <?php echo $estado_filtro == 'Completado' ? 'selected' : ''; ?>>
+                            Completado</option>
                     </select>
                     <button type="submit" class="btn btn-primary">Filtrar</button>
                 </form>
@@ -247,7 +245,6 @@ if (!$result) {
                                 while ($row = mysqli_fetch_assoc($result)) {
                                     $rowClass = ($row['estado'] == 'Completado') ? 'completed' : '';
 
-                                    // Determinar la clase de badge según el estado
                                     $badgeClass = '';
                                     if (strtolower($row['estado']) == 'completado') {
                                         $badgeClass = 'bg-completado';

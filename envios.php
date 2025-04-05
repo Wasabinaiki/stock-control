@@ -2,29 +2,23 @@
 session_start();
 require_once "includes/config.php";
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
 
-// Obtener el ID del usuario actual
 $usuario_id = $_SESSION["id"];
 
-// Filtros
 $estado_filtro = isset($_GET['estado_filtro']) ? $_GET['estado_filtro'] : '';
 $orden_fecha_salida = isset($_GET['orden_fecha_salida']) ? $_GET['orden_fecha_salida'] : '';
 $orden_fecha_llegada = isset($_GET['orden_fecha_llegada']) ? $_GET['orden_fecha_llegada'] : '';
 
-// Obtener lista de envíos del usuario actual con filtros
 $sql = "SELECT id_envio, estado_envio, fecha_salida, fecha_llegada FROM envios WHERE usuario_id = ?";
 
-// Aplicar filtros
 if (!empty($estado_filtro)) {
     $sql .= " AND estado_envio = '" . mysqli_real_escape_string($link, $estado_filtro) . "'";
 }
 
-// Ordenar por fecha de salida o llegada si se especifica
 if (!empty($orden_fecha_salida)) {
     $sql .= " ORDER BY fecha_salida " . ($orden_fecha_salida == 'asc' ? 'ASC' : 'DESC');
 } elseif (!empty($orden_fecha_llegada)) {
@@ -41,12 +35,9 @@ if ($stmt = mysqli_prepare($link, $sql)) {
     $error = "Error al preparar la consulta: " . mysqli_error($link);
 }
 
-// Función para formatear el estado
 function formatearEstado($estado)
 {
-    // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
     $estado = str_replace('_', ' ', $estado);
-    // Capitalizar la primera letra de cada palabra
     return ucwords($estado);
 }
 ?>
@@ -106,7 +97,6 @@ function formatearEstado($estado)
             margin-bottom: 0;
         }
 
-        /* Estados estandarizados */
         .badge {
             padding: 6px 10px;
             border-radius: 12px;
@@ -116,13 +106,11 @@ function formatearEstado($estado)
         .bg-pendiente,
         .bg-en-proceso {
             background-color: #ffc107 !important;
-            /* Amarillo para en proceso */
             color: #000 !important;
         }
 
         .bg-completado {
             background-color: #198754 !important;
-            /* Verde para completado */
             color: #fff !important;
         }
 
@@ -181,14 +169,12 @@ function formatearEstado($estado)
                 <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Gestión de Envíos</h5>
             </div>
             <div class="card-body">
-                <!-- Botón para programar mantenimiento -->
                 <div class="mb-4">
                     <a href="programar_mantenimiento.php" class="btn btn-primary">
                         <i class="fas fa-calendar-plus me-2"></i>Programar Mantenimiento
                     </a>
                 </div>
 
-                <!-- Filtros -->
                 <form action="" method="GET" class="filter-form">
                     <select name="estado_filtro" class="form-select">
                         <option value="">Todos los estados</option>
@@ -231,7 +217,6 @@ function formatearEstado($estado)
                             <?php
                             if (isset($result_envios) && mysqli_num_rows($result_envios) > 0) {
                                 while ($row = mysqli_fetch_assoc($result_envios)) {
-                                    // Determinar la clase de badge según el estado
                                     $badgeClass = '';
                                     if (strtolower($row['estado_envio']) == 'completado') {
                                         $badgeClass = 'bg-completado';

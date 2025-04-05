@@ -23,21 +23,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $apellido = trim($_POST["apellido"]);
     }
-    
-    // Validar nombre de usuario
+
     if (empty(trim($_POST["username"]))) {
         $username_err = "Por favor ingrese un nombre de usuario.";
     } else {
-        // Verificar si el nombre de usuario ya existe (solo si es diferente al actual)
         $sql = "SELECT id_usuario FROM usuarios WHERE username = ? AND id_usuario != ?";
         if ($stmt = mysqli_prepare($link, $sql)) {
             mysqli_stmt_bind_param($stmt, "si", $param_username, $param_id);
             $param_username = trim($_POST["username"]);
             $param_id = $user_id;
-            
+
             if (mysqli_stmt_execute($stmt)) {
                 mysqli_stmt_store_result($stmt);
-                
+
                 if (mysqli_stmt_num_rows($stmt) == 1) {
                     $username_err = "Este nombre de usuario ya está en uso.";
                 } else {
@@ -46,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             } else {
                 echo "Oops! Algo salió mal. Por favor, inténtelo de nuevo más tarde.";
             }
-            
+
             mysqli_stmt_close($stmt);
         }
     }
@@ -75,9 +73,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $param_id = $user_id;
 
             if (mysqli_stmt_execute($stmt)) {
-                // Actualizar también el nombre de usuario en la sesión
                 $_SESSION["username"] = $username;
-                // Establecer mensaje de éxito
                 $_SESSION['success_message'] = "Perfil actualizado exitosamente.";
                 header("location: perfil.php");
                 exit();
@@ -161,7 +157,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
-        
+
         .section-title {
             color: #764ba2;
             margin-bottom: 20px;
@@ -196,9 +192,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="container mt-5">
         <div class="wrapper">
             <h2 class="mb-4"><i class="fas fa-user-edit me-2"></i>Editar Perfil</h2>
-            
+
             <h3 class="section-title"><i class="fas fa-id-card me-2"></i>Información Personal</h3>
-            
+
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                 <div class="row">
                     <div class="col-md-6">
@@ -220,7 +216,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="username">Nombre de Usuario</label>
                     <div class="input-group">
@@ -232,7 +228,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <span class="invalid-feedback"><?php echo $username_err; ?></span>
                     <small class="text-muted">El nombre de usuario debe ser único.</small>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="email">Correo Electrónico</label>
                     <input type="email" name="email" id="email"
@@ -240,7 +236,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         value="<?php echo $email; ?>">
                     <span class="invalid-feedback"><?php echo $email_err; ?></span>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="telefono">Teléfono</label>
                     <input type="tel" name="telefono" id="telefono"
@@ -248,7 +244,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         value="<?php echo $telefono; ?>">
                     <span class="invalid-feedback"><?php echo $telefono_err; ?></span>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="area">Área</label>
                     <input type="text" name="area" id="area"
@@ -256,9 +252,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         value="<?php echo $area; ?>">
                     <span class="invalid-feedback"><?php echo $area_err; ?></span>
                 </div>
-                
+
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Guardar Cambios</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Guardar
+                        Cambios</button>
                     <a class="btn btn-secondary" href="perfil.php">Cancelar</a>
                 </div>
             </form>

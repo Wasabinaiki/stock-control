@@ -2,22 +2,17 @@
 session_start();
 require_once "includes/config.php";
 
-// Verificar si el usuario ha iniciado sesión y es administrador
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION["rol"] !== "administrador") {
     header("location: login.php");
     exit;
 }
 
-// Función para formatear el estado
 function formatearEstado($estado)
 {
-    // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
     $estado = strtolower(str_replace('_', ' ', $estado));
-    // Capitalizar la primera letra de cada palabra
     return ucwords($estado);
 }
 
-// Obtener estadísticas generales
 $sql_usuarios = "SELECT COUNT(*) as total FROM usuarios";
 $result_usuarios = mysqli_query($link, $sql_usuarios);
 $total_usuarios = mysqli_fetch_assoc($result_usuarios)['total'];
@@ -30,7 +25,6 @@ $sql_mantenimientos = "SELECT COUNT(*) as total FROM mantenimientos";
 $result_mantenimientos = mysqli_query($link, $sql_mantenimientos);
 $total_mantenimientos = mysqli_fetch_assoc($result_mantenimientos)['total'];
 
-// Obtener estadísticas de dispositivos por tipo
 $sql_tipos = "SELECT tipo, COUNT(*) as total FROM dispositivos GROUP BY tipo";
 $result_tipos = mysqli_query($link, $sql_tipos);
 $tipos_labels = [];
@@ -40,34 +34,29 @@ while ($row = mysqli_fetch_assoc($result_tipos)) {
     $tipos_data[] = $row['total'];
 }
 
-// Obtener estadísticas de mantenimientos por estado
 $sql_estados = "SELECT estado, COUNT(*) as total FROM mantenimientos GROUP BY estado";
 $result_estados = mysqli_query($link, $sql_estados);
 $estados_labels = [];
 $estados_data = [];
 $estados_colors = [];
 
-// Colores para los estados
 $color_map = [
-    'programado' => '#ffc107', // Amarillo
-    'en_proceso' => '#0d6efd', // Azul
-    'completado' => '#198754'  // Verde
+    'programado' => '#ffc107',
+    'en_proceso' => '#0d6efd',
+    'completado' => '#198754'
 ];
 
 while ($row = mysqli_fetch_assoc($result_estados)) {
     $estados_labels[] = formatearEstado($row['estado']);
     $estados_data[] = $row['total'];
-    // Asignar color según el estado
     $estados_colors[] = isset($color_map[$row['estado']]) ? $color_map[$row['estado']] : '#6c757d';
 }
 
-// Obtener los últimos 5 dispositivos registrados
 $sql_ultimos = "SELECT d.*, u.username FROM dispositivos d 
                 JOIN usuarios u ON d.id_usuario = u.id_usuario 
                 ORDER BY d.fecha_entrega DESC LIMIT 5";
 $result_ultimos = mysqli_query($link, $sql_ultimos);
 
-// Obtener los próximos 5 mantenimientos programados
 $sql_proximos = "SELECT m.*, d.tipo, d.marca, d.modelo, u.username 
                 FROM mantenimientos m 
                 JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo 
@@ -76,8 +65,6 @@ $sql_proximos = "SELECT m.*, d.tipo, d.marca, d.modelo, u.username
                 ORDER BY m.fecha_programada ASC LIMIT 5";
 $result_proximos = mysqli_query($link, $sql_proximos);
 
-// Obtener estadísticas adicionales para métricas de rendimiento
-// 1. Dispositivos por marca
 $sql_marcas = "SELECT marca, COUNT(*) as total FROM dispositivos GROUP BY marca ORDER BY total DESC LIMIT 5";
 $result_marcas = mysqli_query($link, $sql_marcas);
 $marcas_data = [];
@@ -85,7 +72,6 @@ while ($row = mysqli_fetch_assoc($result_marcas)) {
     $marcas_data[$row['marca']] = $row['total'];
 }
 
-// 2. Usuarios más activos (con más dispositivos)
 $sql_usuarios_activos = "SELECT u.username, COUNT(d.id_dispositivo) as total 
                         FROM usuarios u 
                         LEFT JOIN dispositivos d ON u.id_usuario = d.id_usuario 
@@ -98,7 +84,6 @@ while ($row = mysqli_fetch_assoc($result_usuarios_activos)) {
     $usuarios_activos[$row['username']] = $row['total'];
 }
 
-// 3. Eficiencia de mantenimientos (% completados vs programados)
 $sql_eficiencia = "SELECT 
                     SUM(CASE WHEN estado = 'completado' THEN 1 ELSE 0 END) as completados,
                     COUNT(*) as total
@@ -108,13 +93,11 @@ $eficiencia_data = mysqli_fetch_assoc($result_eficiencia);
 $eficiencia = ($eficiencia_data['total'] > 0) ?
     round(($eficiencia_data['completados'] / $eficiencia_data['total']) * 100, 1) : 0;
 
-// 4. Tasa de dispositivos activos
 $sql_activos = "SELECT COUNT(*) as total FROM dispositivos WHERE estado = 'activo' OR estado = 'disponible'";
 $result_activos = mysqli_query($link, $sql_activos);
 $dispositivos_activos = mysqli_fetch_assoc($result_activos)['total'];
 $tasa_activos = $total_dispositivos > 0 ? round(($dispositivos_activos / $total_dispositivos) * 100, 1) : 0;
 
-// 5. Mantenimientos pendientes
 $sql_pendientes = "SELECT COUNT(*) as total FROM mantenimientos WHERE estado = 'programado'";
 $result_pendientes = mysqli_query($link, $sql_pendientes);
 $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
@@ -176,7 +159,6 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
         .table thead th {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #333 !important;
-            /* Cambiado a gris oscuro para mejor legibilidad */
             border: none;
         }
 
@@ -268,7 +250,6 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
     <div class="container mt-4">
         <h2 class="mb-4"><i class="fas fa-chart-line me-2"></i>Informes y Estadísticas</h2>
 
-        <!-- Estadísticas Generales -->
         <div class="row mb-4">
             <div class="col-md-4">
                 <div class="card stat-card">
@@ -293,7 +274,6 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
             </div>
         </div>
 
-        <!-- Gráficos -->
         <div class="row mb-4">
             <div class="col-md-6">
                 <div class="card">
@@ -321,7 +301,6 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
             </div>
         </div>
 
-        <!-- Métricas de Rendimiento -->
         <div class="row mb-4">
             <div class="col-md-12">
                 <div class="card">
@@ -346,7 +325,6 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                                 </div>
                             </div>
 
-                            <!-- MÉTRICA ACTUALIZADA 1: Dispositivos Activos en lugar de Dispositivos por Usuario -->
                             <div class="col-md-3 mb-3">
                                 <div class="metric-card">
                                     <div class="metric-icon text-success">
@@ -379,7 +357,6 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
                                 </div>
                             </div>
 
-                            <!-- MÉTRICA ACTUALIZADA 2: Mantenimientos Pendientes en lugar de Tiempo Promedio de Mantenimiento -->
                             <div class="col-md-3 mb-3">
                                 <div class="metric-card">
                                     <div class="metric-icon text-info">
@@ -450,7 +427,6 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
             </div>
         </div>
 
-        <!-- Tablas de Datos -->
         <div class="row">
             <div class="col-md-6">
                 <div class="card">
@@ -529,7 +505,6 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Gráfico de tipos de dispositivos
         const ctxTipos = document.getElementById('tiposChart').getContext('2d');
         const tiposChart = new Chart(ctxTipos, {
             type: 'pie',
@@ -575,7 +550,6 @@ $mantenimientos_pendientes = mysqli_fetch_assoc($result_pendientes)['total'];
             }
         });
 
-        // Gráfico de estados de mantenimientos
         const ctxEstados = document.getElementById('estadosChart').getContext('2d');
         const estadosChart = new Chart(ctxEstados, {
             type: 'doughnut',

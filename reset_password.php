@@ -7,7 +7,6 @@ $email_err = $new_password_err = $confirm_password_err = "";
 $success_message = $error_message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Validar email
     if (empty(trim($_POST["email"]))) {
         $email_err = "Por favor ingrese su email.";
     } else {
@@ -33,7 +32,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Validar contraseña
     if (empty(trim($_POST["new_password"]))) {
         $new_password_err = "Por favor ingrese la nueva contraseña.";
     } elseif (strlen(trim($_POST["new_password"])) < 6) {
@@ -42,7 +40,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $new_password = trim($_POST["new_password"]);
     }
 
-    // Validar confirmación de contraseña
     if (empty(trim($_POST["confirm_password"]))) {
         $confirm_password_err = "Por favor confirme la contraseña.";
     } else {
@@ -52,7 +49,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Verificar errores antes de actualizar
     if (empty($email_err) && empty($new_password_err) && empty($confirm_password_err)) {
         $sql = "UPDATE usuarios SET password = ? WHERE email = ?";
 
@@ -131,7 +127,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-top-left-radius: 12px;
             border-bottom-left-radius: 12px;
             text-align: center;
-            /* Centrar contenido */
         }
 
         .info-container {
@@ -173,7 +168,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .form-group {
             position: relative;
             margin-bottom: 30px;
-            /* Espacio adicional para errores */
             width: 80%;
             margin-left: auto;
             margin-right: auto;
@@ -181,9 +175,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .form-control {
             padding-left: 40px;
-            /* Espacio para los íconos */
             padding-right: 40px;
-            /* Espacio para el ícono de mostrar contraseña */
             height: 50px;
             font-size: 16px;
             border: 1px solid #ddd;
@@ -221,18 +213,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-size: 14px;
             color: red;
             min-height: 20px;
-            /* Espacio reservado para evitar saltos */
         }
 
-        /* Centrar el formulario */
         .form-container form {
             max-width: 400px;
-            /* Ancho máximo del formulario */
             margin: 0 auto;
-            /* Centrar horizontalmente */
         }
 
-        /* Mejorar espaciado */
         .form-group+.form-group {
             margin-top: 20px;
         }
@@ -245,9 +232,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 
 <body>
-    <!-- Contenedor principal -->
     <div class="container">
-        <!-- Formulario de restablecer contraseña -->
         <div class="form-container">
             <h2><i class="fas fa-lock me-2" style="margin-bottom: 6%; margin-top: 4%;"></i>Restablecer Contraseña</h2>
 
@@ -299,7 +284,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </form>
         </div>
 
-        <!-- Información adicional -->
         <div class="info-container">
             <div class="logo">
                 <img src="Stock Control Logo Curved.png" alt="Logo StockControl">
@@ -311,10 +295,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 
-    <!-- Script para mostrar/ocultar contraseña -->
     <script>
         function togglePasswordVisibility(icon) {
-            // Obtener el campo de contraseña que está en el mismo contenedor que el icono
             const passwordInput = icon.closest('.form-group').querySelector('input[type="password"], input[type="text"]');
 
             if (passwordInput.type === 'password') {

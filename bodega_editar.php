@@ -1,5 +1,4 @@
 <?php
-// bodega_editar.php
 session_start();
 require_once "includes/config.php";
 
@@ -50,7 +49,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if (empty($id_err)) {
-        // Solo actualizamos los campos que se muestran en la bodega
         $sql = "UPDATE dispositivos SET tipo=?, marca=?, modelo=?, estado=? WHERE id_dispositivo=?";
 
         if ($stmt = mysqli_prepare($link, $sql)) {
@@ -63,7 +61,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $param_id = $id;
 
             if (mysqli_stmt_execute($stmt)) {
-                // Redirigir de vuelta a la página de bodega con un mensaje de éxito
                 $_SESSION["success_message"] = "Dispositivo actualizado exitosamente.";
                 header("location: bodega.php");
                 exit();

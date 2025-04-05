@@ -1,5 +1,4 @@
 <?php
-// bodega_eliminar.php
 session_start();
 require_once "includes/config.php";
 
@@ -9,7 +8,6 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION
 }
 
 if (isset($_POST["id"]) && !empty($_POST["id"])) {
-    // Verificar que estamos usando el nombre correcto de la columna en la base de datos
     $sql = "UPDATE dispositivos SET estado = 'Completado' WHERE id_dispositivo = ?";
 
     if ($stmt = mysqli_prepare($link, $sql)) {

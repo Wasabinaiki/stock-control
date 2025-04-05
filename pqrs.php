@@ -1,12 +1,13 @@
 <?php
 session_start();
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,29 +18,37 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
         body {
             background-color: #f8f9fa;
         }
+
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .navbar-brand, .nav-link {
+
+        .navbar-brand,
+        .nav-link {
             color: white !important;
         }
+
         .container {
             margin-top: 30px;
         }
+
         .card {
             border: none;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
         }
+
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
@@ -70,9 +79,9 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
                         <h4 class="mb-0"><i class="fas fa-paper-plane me-2"></i>Formulario PQRS</h4>
                     </div>
                     <div class="card-body">
-                        <?php if(isset($_SESSION['success_message'])): ?>
+                        <?php if (isset($_SESSION['success_message'])): ?>
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                <?php 
+                                <?php
                                 echo $_SESSION['success_message'];
                                 unset($_SESSION['success_message']);
                                 ?>
@@ -80,9 +89,9 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
                             </div>
                         <?php endif; ?>
 
-                        <?php if(isset($_SESSION['error_message'])): ?>
+                        <?php if (isset($_SESSION['error_message'])): ?>
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <?php 
+                                <?php
                                 echo $_SESSION['error_message'];
                                 unset($_SESSION['error_message']);
                                 ?>
@@ -103,7 +112,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
                             </div>
                             <div class="mb-3">
                                 <label for="descripcion" class="form-label">Descripción</label>
-                                <textarea class="form-control" id="descripcion" name="descripcion" rows="4" required></textarea>
+                                <textarea class="form-control" id="descripcion" name="descripcion" rows="4"
+                                    required></textarea>
                             </div>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">
@@ -119,4 +129,5 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

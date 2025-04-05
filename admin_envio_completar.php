@@ -8,7 +8,6 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION
 }
 
 if (isset($_POST["id"]) && !empty($_POST["id"])) {
-    // En lugar de eliminar, actualizamos el estado a "Completado"
     $sql = "UPDATE envios SET estado_envio = 'Completado', fecha_llegada = CURDATE() WHERE id_envio = ?";
 
     if ($stmt = mysqli_prepare($link, $sql)) {

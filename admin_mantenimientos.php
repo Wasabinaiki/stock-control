@@ -7,53 +7,40 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION
     exit;
 }
 
-// Procesar eliminación si se recibe un ID
 if (isset($_POST['eliminar_id']) && !empty($_POST['eliminar_id'])) {
     $id_mantenimiento = $_POST['eliminar_id'];
-    
-    // Iniciar transacción
+
     mysqli_begin_transaction($link);
-    
+
     try {
-        // Eliminar el mantenimiento
         $sql_delete = "DELETE FROM mantenimientos WHERE id = ?";
         $stmt_delete = mysqli_prepare($link, $sql_delete);
         mysqli_stmt_bind_param($stmt_delete, "i", $id_mantenimiento);
         mysqli_stmt_execute($stmt_delete);
         mysqli_stmt_close($stmt_delete);
-        
-        // Confirmar la transacción
+
         mysqli_commit($link);
-        
-        // Establecer mensaje de éxito
+
         $_SESSION['success_message'] = "Mantenimiento eliminado correctamente.";
     } catch (Exception $e) {
-        // Revertir la transacción en caso de error
         mysqli_rollback($link);
-        
-        // Establecer mensaje de error
+
         $_SESSION['error_message'] = "Error al eliminar el mantenimiento: " . $e->getMessage();
     }
-    
-    // Redirigir para evitar reenvío del formulario
+
     header("Location: " . $_SERVER['PHP_SELF'] . (isset($_SERVER['QUERY_STRING']) && !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : ''));
     exit;
 }
 
-// Filtros
 $estado_filtro = isset($_GET['estado_filtro']) ? $_GET['estado_filtro'] : '';
 $orden_fecha = isset($_GET['orden_fecha']) ? $_GET['orden_fecha'] : 'desc';
 
-// Función para formatear el estado
 function formatearEstado($estado)
 {
-    // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
     $estado = strtolower(str_replace('_', ' ', $estado));
-    // Capitalizar la primera letra de cada palabra
     return ucwords($estado);
 }
 
-// Obtener lista de mantenimientos con filtros
 $sql = "SELECT m.*, d.marca, d.modelo, u.username 
         FROM mantenimientos m 
         JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
@@ -121,7 +108,7 @@ $result_mantenimientos = mysqli_query($link, $sql);
         .btn-primary:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
-        
+
         .btn-danger {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5253 100%);
             border: none;
@@ -139,22 +126,18 @@ $result_mantenimientos = mysqli_query($link, $sql);
             border-top: none;
         }
 
-        /* Estados estandarizados */
         .bg-pendiente {
             background-color: #ffc107 !important;
-            /* Amarillo para pendiente/programado */
             color: #000 !important;
         }
 
         .bg-en-proceso {
             background-color: #0d6efd !important;
-            /* Azul para en proceso */
             color: #fff !important;
         }
 
         .bg-completado {
             background-color: #198754 !important;
-            /* Verde para completado */
             color: #fff !important;
         }
 
@@ -182,20 +165,20 @@ $result_mantenimientos = mysqli_query($link, $sql);
                 margin-bottom: 10px;
             }
         }
-        
+
         .modal-header {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5253 100%);
             color: white;
         }
-        
+
         .modal-title {
             font-weight: bold;
         }
-        
+
         .btn-close {
             filter: brightness(0) invert(1);
         }
-        
+
         .action-buttons {
             display: flex;
             gap: 5px;
@@ -237,7 +220,7 @@ $result_mantenimientos = mysqli_query($link, $sql);
             </div>
             <?php unset($_SESSION['success_message']); ?>
         <?php endif; ?>
-        
+
         <?php if (isset($_SESSION['error_message'])): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="fas fa-exclamation-circle me-2"></i><?php echo $_SESSION['error_message']; ?>
@@ -245,13 +228,12 @@ $result_mantenimientos = mysqli_query($link, $sql);
             </div>
             <?php unset($_SESSION['error_message']); ?>
         <?php endif; ?>
-        
+
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Mantenimientos Programados</h5>
             </div>
             <div class="card-body">
-                <!-- Filtros -->
                 <form action="" method="GET" class="filter-form">
                     <select name="estado_filtro" class="form-select">
                         <option value="">Todos los estados</option>
@@ -318,10 +300,8 @@ $result_mantenimientos = mysqli_query($link, $sql);
                                                 class="btn btn-primary btn-sm">
                                                 <i class="fas fa-edit"></i> Editar
                                             </a>
-                                            <button type="button" class="btn btn-danger btn-sm" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#eliminarModal" 
-                                                    data-id="<?php echo $row['id']; ?>">
+                                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                                data-bs-target="#eliminarModal" data-id="<?php echo $row['id']; ?>">
                                                 <i class="fas fa-trash-alt"></i> Eliminar
                                             </button>
                                         </td>
@@ -339,12 +319,12 @@ $result_mantenimientos = mysqli_query($link, $sql);
         </div>
     </div>
 
-    <!-- Modal de Confirmación para Eliminar -->
     <div class="modal fade" id="eliminarModal" tabindex="-1" aria-labelledby="eliminarModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="eliminarModalLabel"><i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación</h5>
+                    <h5 class="modal-title" id="eliminarModalLabel"><i
+                            class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -363,10 +343,9 @@ $result_mantenimientos = mysqli_query($link, $sql);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Script para pasar el ID al modal de eliminación
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const eliminarModal = document.getElementById('eliminarModal');
-            eliminarModal.addEventListener('show.bs.modal', function(event) {
+            eliminarModal.addEventListener('show.bs.modal', function (event) {
                 const button = event.relatedTarget;
                 const id = button.getAttribute('data-id');
                 document.getElementById('eliminar_id').value = id;

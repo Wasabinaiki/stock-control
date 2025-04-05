@@ -7,7 +7,6 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION
     exit;
 }
 
-// Gestión de roles
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["update_role"])) {
     $user_id = $_POST["user_id"];
     $new_role = $_POST["new_role"];
@@ -24,10 +23,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["update_role"])) {
     }
 }
 
-// Filtro por rol
 $rol_filtro = isset($_GET['rol_filtro']) ? $_GET['rol_filtro'] : '';
 
-// Obtener lista de usuarios con filtro si se proporciona
 $sql = "SELECT id_usuario, username, email, rol FROM usuarios";
 if (!empty($rol_filtro)) {
     $sql .= " WHERE rol = '" . mysqli_real_escape_string($link, $rol_filtro) . "'";

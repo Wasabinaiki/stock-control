@@ -2,13 +2,11 @@
 session_start();
 require_once "includes/config.php";
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
 
-// Verificar si id está definido en la sesión
 if (!isset($_SESSION["id"])) {
     header("location: error.php?mensaje=Sesión inválida");
     exit;
@@ -16,7 +14,6 @@ if (!isset($_SESSION["id"])) {
 
 $id_usuario = $_SESSION["id"];
 
-// Obtener información del usuario
 $sql_usuario = "SELECT * FROM usuarios WHERE id_usuario = ?";
 $stmt_usuario = mysqli_prepare($link, $sql_usuario);
 mysqli_stmt_bind_param($stmt_usuario, "i", $id_usuario);
@@ -24,14 +21,12 @@ mysqli_stmt_execute($stmt_usuario);
 $result_usuario = mysqli_stmt_get_result($stmt_usuario);
 $usuario = mysqli_fetch_assoc($result_usuario);
 
-// Obtener los dispositivos del usuario
 $sql_dispositivos = "SELECT * FROM dispositivos WHERE id_usuario = ? ORDER BY fecha_entrega DESC";
 $stmt_dispositivos = mysqli_prepare($link, $sql_dispositivos);
 mysqli_stmt_bind_param($stmt_dispositivos, "i", $id_usuario);
 mysqli_stmt_execute($stmt_dispositivos);
 $result_dispositivos = mysqli_stmt_get_result($stmt_dispositivos);
 
-// Obtener estadísticas de mantenimiento
 $sql_stats = "SELECT 
                 COUNT(*) as total_mantenimientos,
                 SUM(CASE WHEN m.estado = 'completado' THEN 1 ELSE 0 END) as mantenimientos_completados,
@@ -46,7 +41,6 @@ mysqli_stmt_execute($stmt_stats);
 $result_stats = mysqli_stmt_get_result($stmt_stats);
 $stats = mysqli_fetch_assoc($result_stats);
 
-// Si no hay estadísticas, inicializar con valores predeterminados
 if (!$stats) {
     $stats = [
         'total_mantenimientos' => 0,
@@ -56,7 +50,6 @@ if (!$stats) {
     ];
 }
 
-// Obtener los mantenimientos programados para los dispositivos del usuario
 $sql_mantenimientos = "SELECT m.*, d.marca, d.modelo, d.tipo as tipo_dispositivo 
                       FROM mantenimientos m
                       INNER JOIN dispositivos d ON m.id_dispositivo = d.id_dispositivo
@@ -67,22 +60,18 @@ mysqli_stmt_bind_param($stmt_mantenimientos, "i", $id_usuario);
 mysqli_stmt_execute($stmt_mantenimientos);
 $result_mantenimientos = mysqli_stmt_get_result($stmt_mantenimientos);
 
-// NUEVA SECCIÓN: Obtener PQRs registrados por el usuario
 $sql_pqrs = "SELECT * FROM pqrs WHERE id_usuario = ? ORDER BY fecha_creacion DESC";
 $stmt_pqrs = mysqli_prepare($link, $sql_pqrs);
 mysqli_stmt_bind_param($stmt_pqrs, "i", $id_usuario);
 mysqli_stmt_execute($stmt_pqrs);
 $result_pqrs = mysqli_stmt_get_result($stmt_pqrs);
 
-// NUEVA SECCIÓN: Obtener formularios de contacto enviados por el usuario
-// Nota: Asumiendo que hay una relación entre contactos y usuarios por email
 $sql_contactos = "SELECT * FROM contactos WHERE email = ? ORDER BY fecha DESC";
 $stmt_contactos = mysqli_prepare($link, $sql_contactos);
 mysqli_stmt_bind_param($stmt_contactos, "s", $usuario['email']);
 mysqli_stmt_execute($stmt_contactos);
 $result_contactos = mysqli_stmt_get_result($stmt_contactos);
 
-// NUEVA SECCIÓN: Obtener todos los dispositivos del usuario en bodega sin filtrar por estado
 $sql_bodega = "SELECT d.* 
               FROM dispositivos d 
               WHERE d.id_usuario = ?
@@ -92,12 +81,9 @@ mysqli_stmt_bind_param($stmt_bodega, "i", $id_usuario);
 mysqli_stmt_execute($stmt_bodega);
 $result_bodega = mysqli_stmt_get_result($stmt_bodega);
 
-// Función para formatear el estado
 function formatearEstado($estado)
 {
-    // Primero convertir a minúsculas y reemplazar guiones bajos por espacios
     $estado = strtolower(str_replace('_', ' ', $estado));
-    // Capitalizar la primera letra de cada palabra
     return ucwords($estado);
 }
 ?>
@@ -165,18 +151,15 @@ function formatearEstado($estado)
             color: #6c757d;
         }
 
-        /* Estados estandarizados */
         .estado-pendiente,
         .badge-pendiente {
             color: #ffc107 !important;
-            /* Amarillo para pendiente */
             font-weight: bold;
         }
 
         .estado-en-proceso,
         .badge-en-proceso {
             color: #0d6efd !important;
-            /* Azul para en proceso */
             font-weight: bold;
         }
 
@@ -185,11 +168,9 @@ function formatearEstado($estado)
         .badge-resuelto,
         .badge-completado {
             color: #198754 !important;
-            /* Verde para resuelto/completado */
             font-weight: bold;
         }
 
-        /* Estilo para los badges */
         .badge {
             padding: 6px 10px;
             border-radius: 12px;
@@ -198,27 +179,23 @@ function formatearEstado($estado)
 
         .bg-pendiente {
             background-color: #ffc107 !important;
-            /* Amarillo */
             color: #000 !important;
         }
 
         .bg-en-proceso {
             background-color: #0d6efd !important;
-            /* Azul */
             color: #fff !important;
         }
 
         .bg-resuelto,
         .bg-completado {
             background-color: #198754 !important;
-            /* Verde */
             color: #fff !important;
         }
 
         .bg-inactivo,
         .bg-cancelado {
             background-color: #dc3545 !important;
-            /* Rojo */
             color: #fff !important;
         }
     </style>
@@ -250,7 +227,6 @@ function formatearEstado($estado)
         <h2 class="mb-4">Mis Reportes de Dispositivos</h2>
 
         <div class="row">
-            <!-- Información Personal -->
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
@@ -265,7 +241,6 @@ function formatearEstado($estado)
                 </div>
             </div>
 
-            <!-- Estadísticas de Mantenimiento -->
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
@@ -303,7 +278,6 @@ function formatearEstado($estado)
             </div>
         </div>
 
-        <!-- Mis Dispositivos -->
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">Mis Dispositivos</h5>
@@ -330,13 +304,13 @@ function formatearEstado($estado)
                                         <td><?php echo htmlspecialchars($row['fecha_entrega']); ?></td>
                                         <td>
                                             <?php
-                                            $estadoClass = 'badge-pendiente'; // por defecto
+                                            $estadoClass = 'badge-pendiente';
                                             if (strtolower($row['estado']) == 'activo' || strtolower($row['estado']) == 'completado') {
                                                 $estadoClass = 'badge-completado';
                                             } elseif (strtolower($row['estado']) == 'en proceso') {
                                                 $estadoClass = 'badge-en-proceso';
                                             } elseif (strtolower($row['estado']) == 'inactivo') {
-                                                $estadoClass = 'bg-inactivo'; // Cambiado para usar el estilo rojo para Inactivo
+                                                $estadoClass = 'bg-inactivo';
                                             }
                                             ?>
                                             <span
@@ -355,7 +329,6 @@ function formatearEstado($estado)
             </div>
         </div>
 
-        <!-- Mantenimientos Programados -->
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">Mantenimientos Programados</h5>
@@ -409,7 +382,6 @@ function formatearEstado($estado)
             </div>
         </div>
 
-        <!-- PQRs Registrados -->
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">PQRs Registrados</h5>
@@ -463,7 +435,6 @@ function formatearEstado($estado)
             </div>
         </div>
 
-        <!-- Formularios de Contacto -->
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">Formularios de Contacto Enviados</h5>
@@ -517,7 +488,6 @@ function formatearEstado($estado)
             </div>
         </div>
 
-        <!-- Dispositivos en Bodega -->
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">Mis Dispositivos en Bodega</h5>
@@ -581,7 +551,6 @@ function formatearEstado($estado)
 </html>
 
 <?php
-// Cerrar todas las declaraciones y la conexión
 mysqli_stmt_close($stmt_usuario);
 mysqli_stmt_close($stmt_dispositivos);
 mysqli_stmt_close($stmt_stats);

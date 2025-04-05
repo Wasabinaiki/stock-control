@@ -8,7 +8,6 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 }
 
 if (isset($_POST["id_dispositivo"]) && !empty($_POST["id_dispositivo"])) {
-    // Iniciar transacción
     mysqli_begin_transaction($link);
 
     try {
@@ -16,7 +15,6 @@ if (isset($_POST["id_dispositivo"]) && !empty($_POST["id_dispositivo"])) {
         $param_id_usuario = $_SESSION["id"];
         $tipo = $_POST["tipo"];
 
-        // 1. Eliminar registros de la tabla mantenimientos que referencian al dispositivo
         $sql_mantenimientos = "DELETE FROM mantenimientos WHERE id_dispositivo = ?";
         if ($stmt_mantenimientos = mysqli_prepare($link, $sql_mantenimientos)) {
             mysqli_stmt_bind_param($stmt_mantenimientos, "i", $param_id_dispositivo);
@@ -24,7 +22,6 @@ if (isset($_POST["id_dispositivo"]) && !empty($_POST["id_dispositivo"])) {
             mysqli_stmt_close($stmt_mantenimientos);
         }
 
-        // 2. Finalmente, eliminar el dispositivo
         $sql = "DELETE FROM dispositivos WHERE id_dispositivo = ? AND id_usuario = ?";
         if ($stmt = mysqli_prepare($link, $sql)) {
             mysqli_stmt_bind_param($stmt, "ii", $param_id_dispositivo, $param_id_usuario);
@@ -32,23 +29,17 @@ if (isset($_POST["id_dispositivo"]) && !empty($_POST["id_dispositivo"])) {
             mysqli_stmt_close($stmt);
         }
 
-        // Confirmar la transacción
         mysqli_commit($link);
 
-        // Establecer mensaje de éxito
         $_SESSION['success_message'] = "El dispositivo ha sido eliminado exitosamente.";
 
-        // Redirigir a la página de dispositivos
         header("location: dispositivos.php?tipo=" . $tipo);
         exit();
     } catch (Exception $e) {
-        // Revertir la transacción en caso de error
         mysqli_rollback($link);
 
-        // Establecer mensaje de error
         $_SESSION['error_message'] = "Error al eliminar el dispositivo: " . $e->getMessage();
 
-        // Redirigir a la página de dispositivos
         header("location: dispositivos.php?tipo=" . $_POST["tipo"]);
         exit();
     }
@@ -144,7 +135,8 @@ if (isset($_POST["id_dispositivo"]) && !empty($_POST["id_dispositivo"])) {
                     <input type="hidden" name="id_dispositivo" value="<?php echo trim($_GET["id"]); ?>" />
                     <input type="hidden" name="tipo" value="<?php echo isset($_GET["tipo"]) ? $_GET["tipo"] : ''; ?>" />
                     <p>¿Está seguro que desea eliminar este dispositivo?</p>
-                    <p class="mb-0">Esta acción eliminará también todos los mantenimientos asociados a este dispositivo.</p>
+                    <p class="mb-0">Esta acción eliminará también todos los mantenimientos asociados a este dispositivo.
+                    </p>
                     <p class="mt-3">
                         <input type="submit" value="Sí, eliminar" class="btn btn-danger">
                         <a href="dispositivos.php?tipo=<?php echo isset($_GET["tipo"]) ? $_GET["tipo"] : ''; ?>"
