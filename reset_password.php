@@ -7,69 +7,6 @@ $email_err = $new_password_err = $confirm_password_err = "";
 $success_message = $error_message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (empty(trim($_POST["email"]))) {
-        $email_err = "Por favor ingrese su email.";
-    } else {
-        $sql = "SELECT id_usuario FROM usuarios WHERE email = ?";
-
-        if ($stmt = mysqli_prepare($link, $sql)) {
-            mysqli_stmt_bind_param($stmt, "s", $param_email);
-            $param_email = trim($_POST["email"]);
-
-            if (mysqli_stmt_execute($stmt)) {
-                mysqli_stmt_store_result($stmt);
-
-                if (mysqli_stmt_num_rows($stmt) == 1) {
-                    $email = trim($_POST["email"]);
-                } else {
-                    $email_err = "No existe una cuenta con ese email.";
-                }
-            } else {
-                $error_message = "Algo salió mal. Por favor, inténtelo de nuevo más tarde.";
-            }
-
-            mysqli_stmt_close($stmt);
-        }
-    }
-
-    if (empty(trim($_POST["new_password"]))) {
-        $new_password_err = "Por favor ingrese la nueva contraseña.";
-    } elseif (strlen(trim($_POST["new_password"])) < 6) {
-        $new_password_err = "La contraseña debe tener al menos 6 caracteres.";
-    } else {
-        $new_password = trim($_POST["new_password"]);
-    }
-
-    if (empty(trim($_POST["confirm_password"]))) {
-        $confirm_password_err = "Por favor confirme la contraseña.";
-    } else {
-        $confirm_password = trim($_POST["confirm_password"]);
-        if (empty($new_password_err) && ($new_password != $confirm_password)) {
-            $confirm_password_err = "Las contraseñas no coinciden.";
-        }
-    }
-
-    if (empty($email_err) && empty($new_password_err) && empty($confirm_password_err)) {
-        $sql = "UPDATE usuarios SET password = ? WHERE email = ?";
-
-        if ($stmt = mysqli_prepare($link, $sql)) {
-            mysqli_stmt_bind_param($stmt, "ss", $param_password, $param_email);
-
-            $param_password = password_hash($new_password, PASSWORD_DEFAULT);
-            $param_email = $email;
-
-            if (mysqli_stmt_execute($stmt)) {
-                $success_message = "Contraseña actualizada exitosamente.";
-                unset($_SESSION['login_attempts']);
-            } else {
-                $error_message = "Algo salió mal. Por favor, inténtelo de nuevo más tarde.";
-            }
-
-            mysqli_stmt_close($stmt);
-        }
-    }
-
-    mysqli_close($link);
 }
 ?>
 
@@ -86,12 +23,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         body {
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            overflow-x: hidden;
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #ff9f43, #1e90ff, #667eea, #764ba2);
             background-size: 400% 400%;
             animation: gradientAnimation 10s ease infinite;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -115,9 +52,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             display: flex;
             width: 100%;
             max-width: 1200px;
-            height: 58%;
+            min-height: 58vh;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 20px;
         }
 
         .form-container {
@@ -127,6 +65,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-top-left-radius: 12px;
             border-bottom-left-radius: 12px;
             text-align: center;
+            display: flex;
+            flex-direction: column;
         }
 
         .info-container {
@@ -137,6 +77,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-top-right-radius: 12px;
             border-bottom-right-radius: 12px;
             text-align: center;
+            display: flex;
+            flex-direction: column;
         }
 
         .logo {
@@ -168,7 +110,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .form-group {
             position: relative;
             margin-bottom: 30px;
-            width: 80%;
+            width: 110%;
             margin-left: auto;
             margin-right: auto;
         }
@@ -203,7 +145,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .eye-icon i {
             font-size: 18px;
-            margin-left: 210%;
         }
 
         .invalid-feedback {
@@ -216,8 +157,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .form-container form {
-            max-width: 400px;
+            max-width: 450px;
             margin: 0 auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .form-group+.form-group {
@@ -227,6 +171,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .links {
             margin-top: 20px;
             font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                min-height: auto;
+            }
+
+            .form-container,
+            .info-container {
+                border-radius: 12px;
+            }
         }
     </style>
 </head>
@@ -254,14 +210,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="invalid-feedback"><?php echo $email_err; ?></div>
                 </div>
                 <div class="form-group position-relative">
-                    <input type="password" name="password"
-                        class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>"
-                        placeholder="Contraseña">
+                    <input type="password" name="new_password"
+                        class="form-control <?php echo (!empty($new_password_err)) ? 'is-invalid' : ''; ?>"
+                        placeholder="Nueva Contraseña">
                     <i class="fas fa-lock icon"></i>
                     <span class="eye-icon show-password" onclick="togglePasswordVisibility(this)">
                         <i class="fas fa-eye-slash"></i>
                     </span>
-                    <div class="invalid-feedback"><?php echo $password_err; ?></div>
+                    <div class="invalid-feedback"><?php echo $new_password_err; ?></div>
                 </div>
                 <div class="form-group position-relative">
                     <input type="password" name="confirm_password"
