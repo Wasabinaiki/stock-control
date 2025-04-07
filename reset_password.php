@@ -7,6 +7,69 @@ $email_err = $new_password_err = $confirm_password_err = "";
 $success_message = $error_message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (empty(trim($_POST["email"]))) {
+        $email_err = "Por favor ingrese su email.";
+    } else {
+        $sql = "SELECT id_usuario FROM usuarios WHERE email = ?";
+
+        if ($stmt = mysqli_prepare($link, $sql)) {
+            mysqli_stmt_bind_param($stmt, "s", $param_email);
+            $param_email = trim($_POST["email"]);
+
+            if (mysqli_stmt_execute($stmt)) {
+                mysqli_stmt_store_result($stmt);
+
+                if (mysqli_stmt_num_rows($stmt) == 1) {
+                    $email = trim($_POST["email"]);
+                } else {
+                    $email_err = "No existe una cuenta con ese email.";
+                }
+            } else {
+                $error_message = "Algo salió mal. Por favor, inténtelo de nuevo más tarde.";
+            }
+
+            mysqli_stmt_close($stmt);
+        }
+    }
+
+    if (empty(trim($_POST["new_password"]))) {
+        $new_password_err = "Por favor ingrese la nueva contraseña.";
+    } elseif (strlen(trim($_POST["new_password"])) < 6) {
+        $new_password_err = "La contraseña debe tener al menos 6 caracteres.";
+    } else {
+        $new_password = trim($_POST["new_password"]);
+    }
+
+    if (empty(trim($_POST["confirm_password"]))) {
+        $confirm_password_err = "Por favor confirme la contraseña.";
+    } else {
+        $confirm_password = trim($_POST["confirm_password"]);
+        if (empty($new_password_err) && ($new_password != $confirm_password)) {
+            $confirm_password_err = "Las contraseñas no coinciden.";
+        }
+    }
+
+    if (empty($email_err) && empty($new_password_err) && empty($confirm_password_err)) {
+        $sql = "UPDATE usuarios SET password = ? WHERE email = ?";
+
+        if ($stmt = mysqli_prepare($link, $sql)) {
+            mysqli_stmt_bind_param($stmt, "ss", $param_password, $param_email);
+
+            $param_password = password_hash($new_password, PASSWORD_DEFAULT);
+            $param_email = $email;
+
+            if (mysqli_stmt_execute($stmt)) {
+                $success_message = "Contraseña actualizada exitosamente.";
+                unset($_SESSION['login_attempts']);
+            } else {
+                $error_message = "Algo salió mal. Por favor, inténtelo de nuevo más tarde.";
+            }
+
+            mysqli_stmt_close($stmt);
+        }
+    }
+
+    mysqli_close($link);
 }
 ?>
 
@@ -52,7 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             display: flex;
             width: 100%;
             max-width: 1200px;
-            min-height: 58vh;
+            min-height: 580px;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin: 20px;
@@ -110,7 +173,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .form-group {
             position: relative;
             margin-bottom: 30px;
-            width: 110%;
+            width: 100%;
             margin-left: auto;
             margin-right: auto;
         }
@@ -157,7 +220,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .form-container form {
-            max-width: 450px;
+            max-width: 550px;
             margin: 0 auto;
             flex: 1;
             display: flex;
