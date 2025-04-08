@@ -306,6 +306,19 @@ $stats = mysqli_fetch_assoc($result_stats);
                 </a>
             </li>
         </ul>
+        <div class="sidebar-heading">Sistema</div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="admin_auditoria.php">
+                    <i class="fas fa-history"></i> Registros de Auditoría
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="admin_backup.php">
+                    <i class="fas fa-database"></i> Sistema de Backup
+                </a>
+            </li>
+        </ul>
         <div style="height: 20px;"></div>
     </div>
 
@@ -403,6 +416,28 @@ $stats = mysqli_fetch_assoc($result_stats);
                         </div>
                     </div>
                 </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card quick-access-card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Auditoría</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Revisa los registros de actividad del sistema.</p>
+                            <a href="admin_auditoria.php" class="btn btn-primary">Ver Registros</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card quick-access-card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-database me-2"></i>Backup</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Gestiona las copias de seguridad del sistema.</p>
+                            <a href="admin_backup.php" class="btn btn-primary">Ir a Backup</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -461,6 +496,14 @@ $stats = mysqli_fetch_assoc($result_stats);
             window.addEventListener('resize', checkWidth);
         });
     </script>
+    <!-- Incluir jQuery si no está ya incluido -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Incluir el chatbot -->
+    <?php
+    define('INCLUDE_CHATBOT', true);
+    include 'includes/chatbot_widget.php';
+    ?>
 </body>
 
 </html>

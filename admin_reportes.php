@@ -258,7 +258,62 @@ if (!$result_bodega) {
     </nav>
 
     <div class="container mt-4">
-        <h2 class="mb-4">Gestión de Reportes</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Gestión de Reportes</h2>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-download me-2"></i>Descargar Reportes
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                    <li class="dropdown-header">Todos los reportes</li>
+                    <li><a class="dropdown-item" href="exportar_reportes.php?tipo=todos&formato=pdf" target="_blank"><i
+                                class="fas fa-file-pdf me-2"></i>PDF</a></li>
+                    <li><a class="dropdown-item" href="exportar_reportes.php?tipo=todos&formato=excel"><i
+                                class="fas fa-file-excel me-2"></i>Excel</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li class="dropdown-header">Mantenimientos</li>
+                    <li><a class="dropdown-item" href="exportar_reportes.php?tipo=mantenimientos&formato=pdf"
+                            target="_blank"><i class="fas fa-file-pdf me-2"></i>PDF</a></li>
+                    <li><a class="dropdown-item" href="exportar_reportes.php?tipo=mantenimientos&formato=excel"><i
+                                class="fas fa-file-excel me-2"></i>Excel</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li class="dropdown-header">Dispositivos</li>
+                    <li><a class="dropdown-item" href="exportar_reportes.php?tipo=dispositivos&formato=pdf"
+                            target="_blank"><i class="fas fa-file-pdf me-2"></i>PDF</a></li>
+                    <li><a class="dropdown-item" href="exportar_reportes.php?tipo=dispositivos&formato=excel"><i
+                                class="fas fa-file-excel me-2"></i>Excel</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li class="dropdown-header">PQRs</li>
+                    <li><a class="dropdown-item" href="exportar_reportes.php?tipo=pqrs&formato=pdf" target="_blank"><i
+                                class="fas fa-file-pdf me-2"></i>PDF</a></li>
+                    <li><a class="dropdown-item" href="exportar_reportes.php?tipo=pqrs&formato=excel"><i
+                                class="fas fa-file-excel me-2"></i>Excel</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li class="dropdown-header">Contactos</li>
+                    <li><a class="dropdown-item" href="exportar_reportes.php?tipo=contactos&formato=pdf"
+                            target="_blank"><i class="fas fa-file-pdf me-2"></i>PDF</a></li>
+                    <li><a class="dropdown-item" href="exportar_reportes.php?tipo=contactos&formato=excel"><i
+                                class="fas fa-file-excel me-2"></i>Excel</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li class="dropdown-header">Bodega</li>
+                    <li><a class="dropdown-item" href="exportar_reportes.php?tipo=bodega&formato=pdf" target="_blank"><i
+                                class="fas fa-file-pdf me-2"></i>PDF</a></li>
+                    <li><a class="dropdown-item" href="exportar_reportes.php?tipo=bodega&formato=excel"><i
+                                class="fas fa-file-excel me-2"></i>Excel</a></li>
+                </ul>
+            </div>
+        </div>
 
         <div class="section-header">
             <i class="fas fa-tools me-2"></i>Mantenimientos Programados

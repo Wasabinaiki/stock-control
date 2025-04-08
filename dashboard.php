@@ -498,6 +498,14 @@ $result_actividades = mysqli_stmt_get_result($stmt_actividades);
             window.addEventListener('resize', checkWidth);
         });
     </script>
+    <!-- Incluir jQuery si no está ya incluido -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Incluir el chatbot -->
+    <?php
+    define('INCLUDE_CHATBOT', true);
+    include 'includes/chatbot_widget.php';
+    ?>
 </body>
 
 </html>
